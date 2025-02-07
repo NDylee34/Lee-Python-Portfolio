@@ -11,6 +11,7 @@ df = pd.read_csv("data/penguins.csv")
 st.write("Here's the dataset loaded from a CSV file:")
 st.dataframe(df)
 
+# Asking the user for an input
 st.write("Please select an island of your preference below to view penguins' data filtered by location:")
 
 # Using a selectbox to allow users to filter data by island
