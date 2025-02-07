@@ -1,5 +1,5 @@
 # Lee-Python-Portfolio
 This portfolio is a compilation of all the Elements of Computing II projects I have worked on this semester. It will be updated on a regular basis.
 
-## Plan for Organizing Future Projects
-My plan is to create folders for each step of the projects -- EDA, Filtered Dataset, Models, Final Visualizations & Takeaways. I believe that sorting them in different folders will help me better organize and locate my projects. 
+## Streamlit App
+My first project uses the Streamlit app to create an interactive web applications for data visualization. The project is located in the basic-streamlit-app folder.
