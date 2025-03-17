@@ -46,7 +46,6 @@ The dataset includes information about athletes who won medals in the **2008 Bei
 ✔ **Reshaped** the dataset from **wide to long format**.  
 ✔ **Split** combined columns (`sport_gender`) into **two separate variables** (`sport` and `gender`).  
 ✔ **Cleaned and formatted** text values for consistency.  
-✔ **Added enhancements** such as **athlete images and country flags** for better visualization.  
 
 
 ## 📌 References
