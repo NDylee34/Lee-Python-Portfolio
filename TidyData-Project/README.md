@@ -1,4 +1,4 @@
-# Tidy Data Project: Olympics 2008 Medalists               <img src="images/2008_Summer_Olympics_logo.png" height = "100">
+# <img src="images/2008_Summer_Olympics_logo.png" height = "50"> Tidy Data Project: Olympics 2008 Medalists               
 
 ## 📌 Project Overview
 This project applies **tidy data principles** to a dataset containing **2008 Olympics medalists**. The goal is to **clean, reshape, analyze, and visualize** the data while ensuring it follows the **three core tidy data principles**:
