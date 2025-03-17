@@ -55,13 +55,13 @@ The dataset includes information about athletes who won medals in the **2008 Bei
 ## 📌 Visual Examples
 
 ### **1️⃣ Top 10 Sports with Most Medals**
-![Top Sports Bar Chart](/Users/yujinlee/Library/CloudStorage/GoogleDrive-ylee34@nd.edu/My Drive/Junior/Semester II/Elements of Computing II/Lee-Python-Portfolio/TidyData-Project/images/Top 10 with Most Medals.png)
+![Top Sports Bar Chart](images/Top%2010%20with%20Most%20Medals.png)
 
 ### **2️⃣ Medal Distribution by Gender**
-![Medal Gender Distribution](/Users/yujinlee/Library/CloudStorage/GoogleDrive-ylee34@nd.edu/My Drive/Junior/Semester II/Elements of Computing II/Lee-Python-Portfolio/TidyData-Project/images/Medal Distribution by Gender.png)
+![Medal Gender Distribution](images/Medal%20Distribution%20by%20Gender.png)
 
 ### **3️⃣ Medal Distribution by Sport**
-![Medal Sport Distribution](/Users/yujinlee/Library/CloudStorage/GoogleDrive-ylee34@nd.edu/My Drive/Junior/Semester II/Elements of Computing II/Lee-Python-Portfolio/TidyData-Project/images/Medal Distribution by Gender.png)
+![Medal Sport Distribution](images/Medal%20Distribution%20by%20Sport.png)
 
 
 ## 📌 Conclusion
