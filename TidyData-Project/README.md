@@ -1,1 +1,68 @@
+# 🏅 Tidy Data Project: Olympics 2008 Medalists
 
+## 📌 Project Overview
+This project applies **tidy data principles** to a dataset containing **2008 Olympics medalists**. The goal is to **clean, reshape, analyze, and visualize** the data while ensuring it follows the **three core tidy data principles**:
+
+1️⃣ Each **variable** has its own **column**.  
+2️⃣ Each **observation** forms its **own row**.  
+3️⃣ Each **type of observational unit** forms its **own table**.  
+
+By restructuring the dataset, we **enable deeper analysis** of Olympic trends, gender distribution, and sport-specific performance.
+
+
+## 📌 Instructions to Run the Notebook
+
+### 1️⃣ **Clone the Repository**
+```bash
+git clone https://github.com/yourusername/TidyData-Project.git
+cd TidyData-Project
+```
+
+### 2️⃣ **Install Dependencies**
+Ensure you have Python and the required libraries installed. You can install dependencies using:
+```bash
+pip install pandas matplotlib seaborn jupyter
+```
+
+### 3️⃣ **Run the Jupyter Notebook**
+```bash
+jupyter notebook
+```
+Open **tidy_olympics_analysis.ipynb** and execute the cells to explore the dataset.
+
+
+## 📌 Dataset Description
+
+The dataset includes information about athletes who won medals in the **2008 Beijing Olympics**. Key attributes:
+
+- **medalist_name** – Name of the athlete.  
+- **sport** – Sport category.  
+- **gender** – Male/Female classification.  
+- **medal** – Gold, Silver, or Bronze.  
+
+### 🔹 **Preprocessing Steps**
+✔ **Reshaped** the dataset from **wide to long format**.  
+✔ **Split** combined columns (`sport_gender`) into **two separate variables** (`sport` and `gender`).  
+✔ **Cleaned and formatted** text values for consistency.  
+✔ **Added enhancements** such as **athlete images and country flags** for better visualization.  
+
+
+## 📌 References
+- 📄 **[Tidy Data Principles (Hadley Wickham)](https://vita.had.co.nz/papers/tidy-data.pdf)**
+- 🛠️ **[Pandas Cheat Sheet](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf)**
+
+
+## 📌 Visual Examples
+
+### **1️⃣ Top 10 Sports with Most Medals**
+![Top Sports Bar Chart](/Users/yujinlee/Library/CloudStorage/GoogleDrive-ylee34@nd.edu/My Drive/Junior/Semester II/Elements of Computing II/Lee-Python-Portfolio/TidyData-Project/images/Top 10 with Most Medals.png)
+
+### **2️⃣ Medal Distribution by Gender**
+![Medal Gender Distribution](/Users/yujinlee/Library/CloudStorage/GoogleDrive-ylee34@nd.edu/My Drive/Junior/Semester II/Elements of Computing II/Lee-Python-Portfolio/TidyData-Project/images/Medal Distribution by Gender.png)
+
+### **3️⃣ Medal Distribution by Sport**
+![Medal Sport Distribution](/Users/yujinlee/Library/CloudStorage/GoogleDrive-ylee34@nd.edu/My Drive/Junior/Semester II/Elements of Computing II/Lee-Python-Portfolio/TidyData-Project/images/Medal Distribution by Gender.png)
+
+
+## 📌 Conclusion
+This project successfully **transforms messy Olympic data into a structured format** using **tidy data principles**, enabling clear analysis and storytelling through **visualizations and insights**.
