@@ -65,4 +65,4 @@ The dataset includes information about athletes who won medals in the **2008 Bei
 
 
 ## 📌 Conclusion
-This project successfully **transforms messy Olympic data into a structured format** using **tidy data principles**, enabling clear analysis and storytelling through **visualizations and insights**.
+This project successfully **transforms an unstructured Olympic data into a structured format** using **tidy data principles**, enabling clear analysis and storytelling through **visualizations and insights**.
