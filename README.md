@@ -29,7 +29,6 @@ The **Tidy Data Project** applies **tidy data principles** to transform and anal
 ✔ **Data Cleaning & Reshaping** – Converting the dataset into a **structured format**.  
 ✔ **Exploratory Data Analysis** – Identifying trends in **gender distribution, medal counts, and country rankings**.  
 ✔ **Advanced Visualizations** – Creating **bar charts, pie charts, boxplots, and pivot tables** to **deepen insights**.  
-✔ **Enhancements** – Adding **athlete images and country flags** for improved presentation.  
 
 **How It Complements My Portfolio:**  
 This project **demonstrates my ability to handle unstructured data**, apply **tidy data principles**, and create **meaningful visualizations** that **highlight trends in large datasets**.
