@@ -33,7 +33,7 @@ Open **tidy_olympics_analysis.ipynb** and execute the cells to explore the datas
 
 ## 📌 Dataset Description
 
-The dataset includes information about athletes who won medals in the **2008 Beijing Olympics**. Key attributes:
+The dataset includes information about athletes who won medals in the **2008 Beijing Olympics**. It contains 71 columns and 1875 rows of data. Key attributes are as following:
 
 - **medalist_name** – Name of the athlete.  
 - **sport** – Sport category.  
