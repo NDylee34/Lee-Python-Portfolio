@@ -18,7 +18,7 @@ To run the app locally:
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/NERStreamlitApp.git
+git clone https://github.com/NDylee34/NERStreamlitApp.git
 cd NERStreamlitApp
 ```
 
