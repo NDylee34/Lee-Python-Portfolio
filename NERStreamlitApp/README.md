@@ -68,6 +68,7 @@ Use the **sidebar** to create custom entity types:
 📌 Click the ➕ **"Add Pattern"** button to save your rules.
 
 <img src="images/Custom%20Entity.jpg" alt="Custom Entity" width="300"/>
+
 ---
 
 ### ✅ Run NER and View Results
@@ -78,6 +79,7 @@ Use the **sidebar** to create custom entity types:
   - A visual rendering of your text with highlighted entities
 
 <img src="images/Run%20NER.jpg" alt="Run NER" width="500"/>
+
 ---
 
 ## 📚 References
