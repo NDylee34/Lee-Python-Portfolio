@@ -47,7 +47,7 @@ Users can either:
 - Upload a `.txt` file, **OR**
 - Paste or type text directly into the textbox
 
-![User Input](images/User%20Input.jpg)
+<img src="images/User%20Input.jpg" alt="User Input" width="500"/>
 
 **Example Default Text:**
 > President Donald Trump wanted to avoid sending the economy into a depression...  
