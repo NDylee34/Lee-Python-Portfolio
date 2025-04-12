@@ -22,7 +22,7 @@ if "patterns" not in st.session_state:
 # Sidebar: Add Custom Entity Patterns
 st.sidebar.header("🛠️ Define Custom Entity Patterns")
 label = st.sidebar.text_input("Entity Label (e.g., BRAND, TOOL)").strip().upper()
-patterns_input = st.sidebar.text_area("Entity Patterns (comma-separated)", "Trump, Journal, Federal Deposit Insurance Corp")
+patterns_input = st.sidebar.text_area("Entity Patterns (comma-separated)")
 
 if st.sidebar.button("➕ Add Pattern"):
     if label and patterns_input:
