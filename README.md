@@ -36,7 +36,7 @@ This project **showcases my ability to efficiently process and analyze unstructu
 You're right! Here's the same emoji-enhanced section delivered in plain text for **easy copy-paste** into your `.Rmd` or `README.md` file — no formatting issues:
 
 ### **Named Entity Recognition (NER) Streamlit App**  
-🔗 [View Project Repository](https://github.com/NDylee34/NERStreamlitApp)  
+🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/NERStreamlitApp)  
 🚀 [Launch Live App](https://lee-ner.streamlit.app/)
 
 **Description:**  
