@@ -42,10 +42,10 @@ You're right! Here's the same emoji-enhanced section delivered in plain text for
 **Description:**  
 The **NER Streamlit App** is a fully interactive web application that enables users to perform **custom rule-based Named Entity Recognition (NER)** using **spaCy**. Designed for flexibility and ease of use, the app allows users to:
 
-**Upload or Input Custom Text** – Analyze any document by uploading `.txt` files or entering text directly.  
-**Define Custom Entity Labels & Patterns** – Use spaCy’s `EntityRuler` to create custom rules for identifying names, organizations, or key terms.  
-**Visualize Results Instantly** – View entities in both a labeled table and a live text highlight using spaCy’s `displacy`.  
-**Fully Cloud-Hosted** – Deployed via **Streamlit Community Cloud** for public access and sharing.
+✔ **Upload or Input Custom Text** – Analyze any document by uploading `.txt` files or entering text directly.  
+✔ **Define Custom Entity Labels & Patterns** – Use spaCy’s `EntityRuler` to create custom rules for identifying names, organizations, or key terms.  
+✔ **Visualize Results Instantly** – View entities in both a labeled table and a live text highlight using spaCy’s `displacy`.  
+✔ **Fully Cloud-Hosted** – Deployed via **Streamlit Community Cloud** for public access and sharing.
 
 **How It Complements My Portfolio:**  
 This project showcases my ability to combine **natural language processing**, **interactive web development**, and **cloud deployment** into one cohesive, user-friendly product. It highlights my strengths in:
