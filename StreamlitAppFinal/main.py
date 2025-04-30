@@ -3,11 +3,9 @@ import streamlit as st
 import pandas as pd
 import requests
 import altair as alt
-import matplotlib.pyplot as plt
 import os
 import random
 from PIL import Image
-import io
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="NutriCompare", layout="wide")
@@ -133,32 +131,55 @@ elif selection == "Meal Planner":
     if not st.session_state.age:
         st.warning("Go to the Nutrition Analyzer page to enter your profile first.")
     else:
-        calorie_goal = estimate_calories(st.session_state.goal, calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age), st.session_state.activity)
-        st.write(f"Daily Calorie Goal: **{int(calorie_goal)} kcal**")
+        calorie_goal = estimate_calories(
+            st.session_state.goal,
+            calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age),
+            st.session_state.activity
+        )
 
-        meals = {
-            "Breakfast": [
-                ("Oatmeal with banana", "https://www.allrecipes.com/recipe/244251/easy-oatmeal-with-banana-and-peanut-butter/", "https://images.media-allrecipes.com/userphotos/560x315/4343967.jpg"),
-                ("Scrambled eggs with spinach", "https://www.bbcgoodfood.com/recipes/creamy-scrambled-eggs-spinach", "https://images.immediate.co.uk/production/volatile/sites/30/2020/08/scrambled-eggs-spinach-7cdba91.jpg"),
-                ("Smoothie with protein powder", "https://www.allrecipes.com/recipe/232028/banana-protein-smoothie/", "https://images.media-allrecipes.com/userphotos/560x315/1094072.jpg")
-            ],
-            "Lunch": [
-                ("Grilled chicken salad", "https://www.allrecipes.com/recipe/214675/grilled-chicken-salad-with-seasonal-fruit/", "https://images.media-allrecipes.com/userphotos/560x315/1012550.jpg"),
-                ("Turkey wrap with veggies", "https://www.myrecipes.com/recipe/turkey-veggie-wrap", "https://cdn1.myrecipes.com/sites/default/files/image/recipes/ck/turkey-wrap-ck-258660-x.jpg"),
-                ("Quinoa bowl with tofu", "https://www.bonappetit.com/recipe/quinoa-and-tofu-bowl", "https://assets.bonappetit.com/photos/57acfbe71b3340441497511d/1:1/w_2560%2Cc_limit/quinoa-tofu-bowl.jpg")
-            ],
-            "Dinner": [
-                ("Baked salmon with rice", "https://www.allrecipes.com/recipe/214488/baked-salmon-fillets-dijon/", "https://images.media-allrecipes.com/userphotos/560x315/4471178.jpg"),
-                ("Veggie stir-fry with tofu", "https://www.loveandlemons.com/tofu-stir-fry/", "https://cdn.loveandlemons.com/wp-content/uploads/2021/01/tofu-stir-fry.jpg"),
-                ("Grilled steak with sweet potato", "https://www.eatingwell.com/recipe/250660/grilled-steak-sweet-potatoes-with-orange-avocado-salsa/", "https://images.media-allrecipes.com/userphotos/560x315/2757991.jpg")
+        st.markdown(f"### 🌟 Daily Calorie Goal: `{int(calorie_goal)} kcal`")
+        st.markdown("---")
+
+        st.subheader("🎲 Click below to generate a fresh meal plan!")
+
+        if st.button("Generate My Plan"):
+            breakfast_pool = [
+                ("Oatmeal with berries", "https://www.allrecipes.com/recipe/244251/easy-oatmeal-with-banana-and-peanut-butter/"),
+                ("Greek yogurt & honey", "https://www.allrecipes.com/recipe/223180/honey-greek-yogurt/"),
+                ("Spinach mushroom omelette", "https://www.allrecipes.com/recipe/23640/mushroom-omelet/"),
+                ("Peanut butter toast & banana", "https://www.eatingwell.com/recipe/252652/peanut-butter-banana-toast/"),
+                ("Protein smoothie with almond milk", "https://www.allrecipes.com/recipe/232028/banana-protein-smoothie/")
             ]
-        }
+            lunch_pool = [
+                ("Quinoa bowl with roasted veggies", "https://www.loveandlemons.com/roasted-veggie-quinoa-bowl/"),
+                ("Grilled chicken wrap", "https://www.allrecipes.com/recipe/218634/grilled-chicken-wraps/"),
+                ("Tofu poke bowl", "https://www.allrecipes.com/recipe/270351/tofu-poke-bowl/"),
+                ("Turkey sandwich & side salad", "https://www.allrecipes.com/recipe/240820/healthy-turkey-sandwich/"),
+                ("Lentil soup with avocado toast", "https://www.allrecipes.com/recipe/26692/lentil-soup/"),
+            ]
+            dinner_pool = [
+                ("Salmon & asparagus", "https://www.allrecipes.com/recipe/240708/baked-salmon-asparagus-foil-packets/"),
+                ("Tofu veggie stir-fry", "https://www.loveandlemons.com/tofu-stir-fry/"),
+                ("Zucchini noodles with chicken", "https://www.eatingwell.com/recipe/268709/zucchini-noodles-with-chicken-tomatoes-avocado-pesto/"),
+                ("Steak & sweet potato", "https://www.eatingwell.com/recipe/250660/grilled-steak-sweet-potatoes-with-orange-avocado-salsa/"),
+                ("Shrimp & brown rice bowl", "https://www.allrecipes.com/recipe/273275/garlic-shrimp-stir-fry/")
+            ]
 
-        if st.button("Randomize Meal Plan"):
-            for meal, options in meals.items():
-                dish, link, img = random.choice(options)
-                st.image(img, width=250)
-                st.markdown(f"**{meal}:** [{dish}]({link})")
+            breakfast = random.choice(breakfast_pool)
+            lunch = random.choice(lunch_pool)
+            dinner = random.choice(dinner_pool)
+
+            st.markdown("### 🥣 Breakfast")
+            st.markdown(f"**[{breakfast[0]}]({breakfast[1]})**")
+
+            st.markdown("### 🥪 Lunch")
+            st.markdown(f"**[{lunch[0]}]({lunch[1]})**")
+
+            st.markdown("### 🍲 Dinner")
+            st.markdown(f"**[{dinner[0]}]({dinner[1]})**")
+
+        st.markdown("---")
+        st.caption("Randomized daily meals powered by curated healthy recipes ✨")
 
 # --- PAGE: MENU SCANNER ---
 elif selection == "Menu Scanner":
