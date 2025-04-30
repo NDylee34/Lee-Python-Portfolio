@@ -2,8 +2,8 @@
 import streamlit as st
 import pandas as pd
 import requests
-import matplotlib.pyplot as plt
 import altair as alt
+import matplotlib.pyplot as plt
 import os
 import random
 from PIL import Image
@@ -24,9 +24,9 @@ HEADERS = {
 }
 
 # --- SESSION STATE DEFAULTS ---
-for key in ["gender", "weight", "height", "age", "goal", "activity"]:
+for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"]:
     if key not in st.session_state:
-        st.session_state[key] = None
+        st.session_state[key] = None if key != "data_rows" else []
 
 # --- BMR CALCULATION FUNCTION ---
 def calculate_bmr(gender, weight, height, age):
@@ -84,7 +84,6 @@ if selection == "Nutrition Analyzer":
     st.sidebar.metric("Estimated Daily Calorie Goal", f"{int(calorie_goal)} kcal")
 
     input_method = st.radio("Choose Input Method:", ["Upload CSV", "Manual Entry"])
-    data_rows = []
 
     if input_method == "Upload CSV":
         uploaded_file = st.file_uploader("Upload CSV with a 'Food' column", type="csv")
@@ -94,33 +93,38 @@ if selection == "Nutrition Analyzer":
                 for food in df["Food"]:
                     nutri_data = get_nutrition_data(food)
                     if nutri_data:
-                        data_rows.append(nutri_data)
+                        st.session_state.data_rows.append(nutri_data)
             else:
                 st.error("CSV must contain 'Food' column")
 
     if input_method == "Manual Entry":
         food_items = st.text_area("Enter food items (one per line):")
         if st.button("Analyze Nutrition"):
-            if not food_items.strip():
-                st.warning("Please enter some foods to analyze.")
-            else:
-                for food in food_items.splitlines():
-                    if food.strip():
-                        nutri_data = get_nutrition_data(food)
-                        if nutri_data:
-                            data_rows.append(nutri_data)
+            st.session_state.data_rows.clear()
+            for food in food_items.splitlines():
+                if food.strip():
+                    nutri_data = get_nutrition_data(food)
+                    if nutri_data:
+                        st.session_state.data_rows.append(nutri_data)
 
-    if data_rows:
-        result_df = pd.DataFrame(data_rows)
+    if st.session_state.data_rows:
+        result_df = pd.DataFrame(st.session_state.data_rows)
         st.dataframe(result_df)
         totals = result_df[["Calories", "Protein (g)", "Carbs (g)", "Fat (g)", "Sodium (mg)"]].sum()
         st.metric("Total Calories", f"{totals['Calories']:.0f} kcal")
 
-        fig, ax = plt.subplots()
-        ax.pie(
-            [totals["Protein (g)"], totals["Carbs (g)"], totals["Fat (g)"]],
-            labels=["Protein", "Carbs", "Fat"], autopct="%1.1f%%")
-        st.pyplot(fig)
+        donut_data = pd.DataFrame({
+            'Nutrient': ['Protein', 'Carbs', 'Fat'],
+            'Grams': [totals["Protein (g)"], totals["Carbs (g)"], totals["Fat (g)"]]
+        })
+
+        donut_chart = alt.Chart(donut_data).mark_arc(innerRadius=50).encode(
+            theta="Grams",
+            color="Nutrient",
+            tooltip=["Nutrient", "Grams"]
+        ).properties(width=350, height=350)
+
+        st.altair_chart(donut_chart)
 
 # --- PAGE: MEAL PLANNER ---
 elif selection == "Meal Planner":
@@ -164,7 +168,3 @@ elif selection == "Menu Scanner":
                 st.markdown(f"- {s}")
         else:
             st.info("No suitable dishes found. Try uploading a clearer text menu.")
-
-# --- FOOTER ---
-st.markdown("---")
-st.caption("NutriCompare © 2025 • Cloud-deployed • Secrets-secured")
