@@ -14,9 +14,8 @@ import io
 st.set_page_config(page_title="NutriCompare", layout="wide")
 
 # --- LOAD ENV VARS ---
-load_dotenv()
-NUTRITIONIX_APP_ID = os.getenv("NUTRITIONIX_APP_ID")
-NUTRITIONIX_API_KEY = os.getenv("NUTRITIONIX_API_KEY")
+NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
+NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
 
 API_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
 HEADERS = {
