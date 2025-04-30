@@ -1,3 +1,4 @@
+# main.py
 import streamlit as st
 import pandas as pd
 import requests
@@ -5,10 +6,11 @@ import matplotlib.pyplot as plt
 import altair as alt
 from dotenv import load_dotenv
 import os
-import base64
+import random
 from PIL import Image
+import io
 
-# --- PAGE SETUP ---
+# --- PAGE CONFIG ---
 st.set_page_config(page_title="NutriCompare", layout="wide")
 
 # --- LOAD ENV VARS ---
@@ -22,6 +24,11 @@ HEADERS = {
     "x-app-key": NUTRITIONIX_API_KEY,
     "Content-Type": "application/json"
 }
+
+# --- SESSION STATE DEFAULTS ---
+for key in ["gender", "weight", "height", "age", "goal", "activity"]:
+    if key not in st.session_state:
+        st.session_state[key] = None
 
 # --- BMR CALCULATION FUNCTION ---
 def calculate_bmr(gender, weight, height, age):
@@ -55,56 +62,50 @@ def get_nutrition_data(food):
             "Sodium (mg)": nutrients.get("nf_sodium", 0)
         }
     else:
+        st.error("API error: check credentials or query")
         return None
 
-# --- SIDEBAR NAVIGATION ---
+# --- PAGE NAVIGATION ---
 pages = ["Nutrition Analyzer", "Meal Planner", "Menu Scanner"]
-st.sidebar.title("Navigation")
-selection = st.sidebar.radio("Go to", pages)
+selection = st.sidebar.radio("Navigation", pages)
 
 # --- PAGE: NUTRITION ANALYZER ---
 if selection == "Nutrition Analyzer":
-    st.title("🥗 NutriCompare: Smart Meal & Nutrition Analyzer")
-    st.markdown("""
-    Upload your meals or manually enter what you ate. We'll analyze your nutrition, show you where you're doing well, and suggest improvements!
-    """)
-
-    # Personal info
+    st.title("🥗 NutriCompare: Nutrition Analyzer")
     with st.sidebar:
-        st.markdown("---")
-        st.subheader("Set Your Goals")
-        gender = st.selectbox("Gender", ["Male", "Female"])
-        weight = st.number_input("Weight (kg)", value=65.0)
-        height = st.number_input("Height (cm)", value=170.0)
-        age = st.slider("Age", 12, 80, 25)
-        goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"])
-        activity = st.selectbox("Activity Level", ["Sedentary", "Moderate", "Active"])
+        st.subheader("👤 Your Profile")
+        st.session_state.gender = st.selectbox("Gender", ["Male", "Female"])
+        st.session_state.weight = st.number_input("Weight (kg)", value=65.0)
+        st.session_state.height = st.number_input("Height (cm)", value=170.0)
+        st.session_state.age = st.slider("Age", 12, 80, 25)
+        st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"])
+        st.session_state.activity = st.selectbox("Activity Level", ["Sedentary", "Moderate", "Active"])
 
-    bmr = calculate_bmr(gender, weight, height, age)
-    calorie_goal = estimate_calories(goal, bmr, activity)
-    st.sidebar.metric("Calorie Goal", f"{int(calorie_goal)} kcal")
+    bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
+    calorie_goal = estimate_calories(st.session_state.goal, bmr, st.session_state.activity)
+    st.sidebar.metric("Estimated Daily Calorie Goal", f"{int(calorie_goal)} kcal")
 
     input_method = st.radio("Choose Input Method:", ["Upload CSV", "Manual Entry"])
     data_rows = []
 
     if input_method == "Upload CSV":
-        uploaded_file = st.file_uploader("Upload a CSV with a column 'Food'", type=["csv"])
+        uploaded_file = st.file_uploader("Upload CSV with a 'Food' column", type="csv")
         if uploaded_file:
             df = pd.read_csv(uploaded_file)
             if "Food" in df.columns:
-                with st.spinner("Analyzing your foods..."):
-                    for food in df["Food"]:
-                        nutri_data = get_nutrition_data(food)
-                        if nutri_data:
-                            data_rows.append(nutri_data)
+                for food in df["Food"]:
+                    nutri_data = get_nutrition_data(food)
+                    if nutri_data:
+                        data_rows.append(nutri_data)
             else:
-                st.error("CSV must contain a 'Food' column")
+                st.error("CSV must contain 'Food' column")
 
-    elif input_method == "Manual Entry":
-        st.subheader("Enter Food Items")
-        food_items = st.text_area("Enter each food item on a new line:")
+    if input_method == "Manual Entry":
+        food_items = st.text_area("Enter food items (one per line):")
         if st.button("Analyze Nutrition"):
-            with st.spinner("Analyzing your foods..."):
+            if not food_items.strip():
+                st.warning("Please enter some foods to analyze.")
+            else:
                 for food in food_items.splitlines():
                     if food.strip():
                         nutri_data = get_nutrition_data(food)
@@ -113,73 +114,55 @@ if selection == "Nutrition Analyzer":
 
     if data_rows:
         result_df = pd.DataFrame(data_rows)
-        st.subheader("🥄 Nutrition Summary")
         st.dataframe(result_df)
+        totals = result_df[["Calories", "Protein (g)", "Carbs (g)", "Fat (g)", "Sodium (mg)"]].sum()
+        st.metric("Total Calories", f"{totals['Calories']:.0f} kcal")
 
-        totals = result_df[["Calories", "Protein (g)", "Carbs (g)", "Fat (g)", "Sodium (mg)"]].sum().to_dict()
-        st.write("**Total Daily Intake:**")
-        st.json(totals)
-
-        st.subheader("🍽️ Macronutrient Distribution")
         fig, ax = plt.subplots()
         ax.pie(
             [totals["Protein (g)"], totals["Carbs (g)"], totals["Fat (g)"]],
-            labels=["Protein", "Carbs", "Fat"],
-            autopct="%1.1f%%"
-        )
+            labels=["Protein", "Carbs", "Fat"], autopct="%1.1f%%")
         st.pyplot(fig)
-
-        st.subheader("📈 Nutrient Comparison with Goals")
-        recs = pd.DataFrame({
-            'Nutrient': ['Calories', 'Protein (g)', 'Carbs (g)', 'Fat (g)'],
-            'Goal': [calorie_goal, 50, 275, 70],
-            'Actual': [totals['Calories'], totals['Protein (g)'], totals['Carbs (g)'], totals['Fat (g)']]
-        })
-
-        chart = alt.Chart(recs).transform_fold(
-            ["Goal", "Actual"],
-            as_=["Type", "Value"]
-        ).mark_bar().encode(
-            x=alt.X("Nutrient:N", title="Nutrient"),
-            y=alt.Y("Value:Q"),
-            color="Type:N"
-        ).properties(width=600)
-
-        st.altair_chart(chart)
-
-        st.subheader("🧠 Nutrition Feedback")
-        if totals["Calories"] < calorie_goal * 0.8:
-            st.warning("Your calorie intake is significantly lower than your estimated needs.")
-        elif totals["Calories"] > calorie_goal * 1.2:
-            st.warning("You're eating much more than your estimated needs.")
-        else:
-            st.success("Your calorie intake is aligned with your goal!")
-
-        if totals["Sodium (mg)"] > 2300:
-            st.warning("High sodium intake detected. Consider lowering salt-heavy foods.")
 
 # --- PAGE: MEAL PLANNER ---
 elif selection == "Meal Planner":
-    st.title("🍳 AI Meal Planner")
-    st.write("We’ll suggest a sample meal plan based on your calorie goal.")
+    st.title("🍽️ Personalized Meal Planner")
 
-    calorie_goal = st.number_input("Enter your daily calorie goal:", value=2000)
+    if not st.session_state.age:
+        st.warning("Go to the Nutrition Analyzer page to enter your profile first.")
+    else:
+        calorie_goal = estimate_calories(st.session_state.goal, calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age), st.session_state.activity)
+        st.write(f"Daily Calorie Goal: **{int(calorie_goal)} kcal**")
 
-    st.subheader("🕐 Suggested Meals")
-    st.markdown("**Breakfast**: Greek yogurt with granola and berries (~25%)")
-    st.markdown("**Lunch**: Grilled chicken salad with quinoa (~35%)")
-    st.markdown("**Dinner**: Salmon, roasted vegetables, and sweet potato (~40%)")
+        meals = {
+            "Breakfast": ["Oatmeal with banana", "Scrambled eggs with spinach", "Smoothie with protein powder"],
+            "Lunch": ["Grilled chicken salad", "Turkey wrap with veggies", "Quinoa bowl with tofu"],
+            "Dinner": ["Baked salmon with rice", "Veggie stir-fry with tofu", "Grilled steak with sweet potato"]
+        }
 
-    if st.button("Randomize Plan"):
-        st.info("Coming soon: AI-based meal generator from a large nutrition database!")
+        if st.button("Randomize Meal Plan"):
+            for meal, options in meals.items():
+                st.markdown(f"**{meal}:** {random.choice(options)}")
 
 # --- PAGE: MENU SCANNER ---
 elif selection == "Menu Scanner":
-    st.title("📸 Upload a Menu or Screenshot")
-    st.write("We'll try to recommend the healthiest dishes for your goals.")
+    st.title("📷 Menu Scanner")
+    uploaded_file = st.file_uploader("Upload a text file of a menu (e.g., .txt)", type="txt")
 
-    uploaded_image = st.file_uploader("Upload an image or screenshot of a menu", type=["jpg", "png", "jpeg"])
+    if uploaded_file:
+        raw_text = uploaded_file.read().decode("utf-8")
+        st.text_area("Scanned Menu Text", value=raw_text, height=200)
 
-    if uploaded_image:
-        st.image(Image.open(uploaded_image), caption="Uploaded Menu", use_column_width=True)
-        st.info("🧠 Coming soon: OCR + NLP to scan dishes and match to nutrition data.")
+        dish_lines = [line.strip() for line in raw_text.splitlines() if len(line.strip()) > 3]
+        suggestions = []
+        for line in dish_lines:
+            nutri = get_nutrition_data(line)
+            if nutri and nutri['Calories'] <= estimate_calories(st.session_state.goal, calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age), st.session_state.activity) * 0.4:
+                suggestions.append(nutri['Food'])
+
+        if suggestions:
+            st.subheader("✅ Healthier Dish Suggestions")
+            for s in suggestions:
+                st.markdown(f"- {s}")
+        else:
+            st.info("No suitable dishes found. Try uploading a clearer text menu.")
