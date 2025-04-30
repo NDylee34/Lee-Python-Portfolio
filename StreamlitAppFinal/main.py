@@ -140,46 +140,52 @@ elif selection == "Meal Planner":
         st.markdown(f"### 🌟 Daily Calorie Goal: `{int(calorie_goal)} kcal`")
         st.markdown("---")
 
-        st.subheader("🎲 Click below to generate a fresh meal plan!")
+        st.subheader("🎲 Click below to generate a fresh, adaptive meal plan!")
 
         if st.button("Generate My Plan"):
-            breakfast_pool = [
-                ("Oatmeal with berries", "https://www.allrecipes.com/recipe/244251/easy-oatmeal-with-banana-and-peanut-butter/"),
-                ("Greek yogurt & honey", "https://www.allrecipes.com/recipe/223180/honey-greek-yogurt/"),
-                ("Spinach mushroom omelette", "https://www.allrecipes.com/recipe/23640/mushroom-omelet/"),
-                ("Peanut butter toast & banana", "https://www.eatingwell.com/recipe/252652/peanut-butter-banana-toast/"),
-                ("Protein smoothie with almond milk", "https://www.allrecipes.com/recipe/232028/banana-protein-smoothie/")
-            ]
-            lunch_pool = [
-                ("Quinoa bowl with roasted veggies", "https://www.loveandlemons.com/roasted-veggie-quinoa-bowl/"),
-                ("Grilled chicken wrap", "https://www.allrecipes.com/recipe/218634/grilled-chicken-wraps/"),
-                ("Tofu poke bowl", "https://www.allrecipes.com/recipe/270351/tofu-poke-bowl/"),
-                ("Turkey sandwich & side salad", "https://www.allrecipes.com/recipe/240820/healthy-turkey-sandwich/"),
-                ("Lentil soup with avocado toast", "https://www.allrecipes.com/recipe/26692/lentil-soup/"),
-            ]
-            dinner_pool = [
-                ("Salmon & asparagus", "https://www.allrecipes.com/recipe/240708/baked-salmon-asparagus-foil-packets/"),
-                ("Tofu veggie stir-fry", "https://www.loveandlemons.com/tofu-stir-fry/"),
-                ("Zucchini noodles with chicken", "https://www.eatingwell.com/recipe/268709/zucchini-noodles-with-chicken-tomatoes-avocado-pesto/"),
-                ("Steak & sweet potato", "https://www.eatingwell.com/recipe/250660/grilled-steak-sweet-potatoes-with-orange-avocado-salsa/"),
-                ("Shrimp & brown rice bowl", "https://www.allrecipes.com/recipe/273275/garlic-shrimp-stir-fry/")
-            ]
+            goal = st.session_state.goal
+            # Larger, tagged meal pools
+            meal_bank = {
+                "Breakfast": [
+                    ("Oatmeal with berries", 300, "Weight Loss"),
+                    ("Egg white scramble with toast", 350, "Weight Loss"),
+                    ("Avocado toast with egg", 400, "Maintenance"),
+                    ("Protein pancake with peanut butter", 500, "Muscle Gain"),
+                    ("Breakfast burrito", 550, "Muscle Gain"),
+                    ("Banana protein smoothie", 400, "Maintenance")
+                ],
+                "Lunch": [
+                    ("Grilled chicken quinoa salad", 500, "Weight Loss"),
+                    ("Turkey wrap with hummus", 550, "Weight Loss"),
+                    ("Tuna poke bowl", 600, "Maintenance"),
+                    ("Tofu stir-fry with brown rice", 650, "Maintenance"),
+                    ("Ground beef and sweet potato bowl", 700, "Muscle Gain"),
+                    ("Grilled salmon and couscous", 750, "Muscle Gain")
+                ],
+                "Dinner": [
+                    ("Zucchini noodles with marinara", 450, "Weight Loss"),
+                    ("Grilled shrimp and veggies", 500, "Weight Loss"),
+                    ("Stuffed bell peppers", 600, "Maintenance"),
+                    ("Pasta with ground turkey and spinach", 700, "Maintenance"),
+                    ("Steak with mashed potatoes", 750, "Muscle Gain"),
+                    ("Chicken alfredo with broccoli", 800, "Muscle Gain")
+                ]
+            }
 
-            breakfast = random.choice(breakfast_pool)
-            lunch = random.choice(lunch_pool)
-            dinner = random.choice(dinner_pool)
+            def select_meal(meals, goal):
+                filtered = [m for m in meals if m[2] == goal or m[2] == "Maintenance"]
+                return random.sample(filtered, 1)[0] if filtered else random.choice(meals)
 
-            st.markdown("### 🥣 Breakfast")
-            st.markdown(f"**[{breakfast[0]}]({breakfast[1]})**")
+            breakfast = select_meal(meal_bank["Breakfast"], goal)
+            lunch = select_meal(meal_bank["Lunch"], goal)
+            dinner = select_meal(meal_bank["Dinner"], goal)
 
-            st.markdown("### 🥪 Lunch")
-            st.markdown(f"**[{lunch[0]}]({lunch[1]})**")
-
-            st.markdown("### 🍲 Dinner")
-            st.markdown(f"**[{dinner[0]}]({dinner[1]})**")
+            st.markdown(f"### 🥣 Breakfast: `{breakfast[0]}` — {breakfast[1]} kcal")
+            st.markdown(f"### 🥪 Lunch: `{lunch[0]}` — {lunch[1]} kcal")
+            st.markdown(f"### 🍲 Dinner: `{dinner[0]}` — {dinner[1]} kcal")
 
         st.markdown("---")
-        st.caption("Randomized daily meals powered by curated healthy recipes ✨")
+        st.caption("Smart meal planning with profile-based logic & varied outputs ✨")
 
 # --- PAGE: MENU SCANNER ---
 elif selection == "Menu Scanner":
