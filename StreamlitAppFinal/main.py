@@ -1,219 +1,179 @@
-# main.py
 import streamlit as st
 import pandas as pd
 import requests
-import altair as alt
-import os
 import random
-from PIL import Image
+import os
+from datetime import datetime
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="NutriCompare", layout="wide")
+# --- Configure the Streamlit app layout and metadata ---
+st.set_page_config(page_title="NutriCompare 4.0", layout="wide")
 
-# --- LOAD SECRETS ---
+# --- Load Nutritionix API credentials from secrets ---
 NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
 NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
 
-API_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
+# API endpoints for Nutritionix
+NUTRITIONIX_SEARCH_URL = "https://trackapi.nutritionix.com/v2/search/instant"
+NUTRITIONIX_NUTRIENTS_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
+
+# Common headers to authenticate requests to Nutritionix
 HEADERS = {
     "x-app-id": NUTRITIONIX_APP_ID,
     "x-app-key": NUTRITIONIX_API_KEY,
     "Content-Type": "application/json"
 }
 
-# --- SESSION STATE DEFAULTS ---
-for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"]:
-    if key not in st.session_state:
-        st.session_state[key] = None if key != "data_rows" else []
+# --- Initialize default session state values ---
+def init_state():
+    defaults = {
+        "gender": "Female",
+        "weight": 60.0,
+        "height": 165.0,
+        "age": 25,
+        "goal": "Maintenance",
+        "activity": "Moderate",
+        "meal_plan": [],  # Stores the generated meals
+        "grocery_list": [],  # Stores food names for grocery checklist
+        "history": set()  # Used to avoid repetition when picking meals
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
-# --- BMR CALCULATION FUNCTION ---
+init_state()
+
+# --- Calculate Basal Metabolic Rate (BMR) based on profile ---
 def calculate_bmr(gender, weight, height, age):
-    if gender == "Male":
-        return 10 * weight + 6.25 * height - 5 * age + 5
-    else:
-        return 10 * weight + 6.25 * height - 5 * age - 161
+    return 10 * weight + 6.25 * height - 5 * age + (5 if gender == "Male" else -161)
 
-# --- CALORIE GOAL ESTIMATION ---
+# --- Estimate daily calorie needs based on activity level and goal ---
 def estimate_calories(goal, bmr, activity):
-    factor = 1.2 if activity == "Sedentary" else 1.55 if activity == "Moderate" else 1.725
+    factor = {"Sedentary": 1.2, "Moderate": 1.55, "Active": 1.725}[activity]
     base = bmr * factor
-    if goal == "Weight Loss":
-        return base - 500
-    elif goal == "Muscle Gain":
+    if goal == "Muscle Gain":
         return base + 300
+    elif goal == "Weight Loss":
+        return base - 500
     else:
         return base
 
-# --- GET NUTRITION DATA ---
-def get_nutrition_data(food):
-    response = requests.post(API_URL, headers=HEADERS, json={"query": food})
-    if response.status_code == 200:
-        nutrients = response.json()["foods"][0]
+# --- Search common food items using Nutritionix's instant endpoint ---
+def search_foods(query):
+    res = requests.get(NUTRITIONIX_SEARCH_URL, headers=HEADERS, params={"query": query, "branded": False})
+    if res.status_code == 200:
+        common = res.json().get("common", [])
+        # Filter out previously used items to ensure variety
+        return [item["food_name"] for item in common if item["food_name"] not in st.session_state.history]
+    return []
+
+# --- Fetch macro + calorie data for a given food item ---
+def get_nutrition(food):
+    res = requests.post(NUTRITIONIX_NUTRIENTS_URL, headers=HEADERS, json={"query": food})
+    if res.status_code == 200:
+        food = res.json()["foods"][0]
         return {
-            "Food": nutrients["food_name"],
-            "Calories": nutrients["nf_calories"],
-            "Protein (g)": nutrients["nf_protein"],
-            "Carbs (g)": nutrients["nf_total_carbohydrate"],
-            "Fat (g)": nutrients["nf_total_fat"],
-            "Sodium (mg)": nutrients.get("nf_sodium", 0)
+            "Food": food["food_name"].title(),
+            "Calories": food["nf_calories"],
+            "Protein": food["nf_protein"],
+            "Carbs": food["nf_total_carbohydrate"],
+            "Fat": food["nf_total_fat"]
         }
-    else:
-        st.error(f"API error: {response.status_code} — {response.text}")
-        return None
+    return None
 
-# --- PAGE NAVIGATION ---
-pages = ["Nutrition Analyzer", "Meal Planner", "Menu Scanner"]
-selection = st.sidebar.radio("Navigation", pages)
+# --- Sidebar Navigation ---
+pages = ["Nutrition Analyzer", "Meal Planner", "Grocery List"]
+page = st.sidebar.radio("📂 Navigate", pages)
 
-# --- PAGE: NUTRITION ANALYZER ---
-if selection == "Nutrition Analyzer":
+# ========== PAGE 1: NUTRITION ANALYZER ========== #
+if page == "Nutrition Analyzer":
     st.title("🥗 NutriCompare: Nutrition Analyzer")
+
+    # Sidebar input form for user profile
     with st.sidebar:
         st.subheader("👤 Your Profile")
-        st.session_state.gender = st.selectbox("Gender", ["Male", "Female"])
-        st.session_state.weight = st.number_input("Weight (kg)", value=65.0)
-        st.session_state.height = st.number_input("Height (cm)", value=170.0)
-        st.session_state.age = st.slider("Age", 12, 80, 25)
-        st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"])
-        st.session_state.activity = st.selectbox("Activity Level", ["Sedentary", "Moderate", "Active"])
+        st.session_state.gender = st.selectbox("Gender", ["Male", "Female"], index=["Male", "Female"].index(st.session_state.gender))
+        st.session_state.weight = st.number_input("Weight (kg)", value=st.session_state.weight)
+        st.session_state.height = st.number_input("Height (cm)", value=st.session_state.height)
+        st.session_state.age = st.slider("Age", 12, 80, value=st.session_state.age)
+        st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"], index=["Maintenance", "Weight Loss", "Muscle Gain"].index(st.session_state.goal))
+        st.session_state.activity = st.selectbox("Activity", ["Sedentary", "Moderate", "Active"], index=["Sedentary", "Moderate", "Active"].index(st.session_state.activity))
 
+    # Calculate calorie target and show as metric
     bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
-    calorie_goal = estimate_calories(st.session_state.goal, bmr, st.session_state.activity)
-    st.sidebar.metric("Estimated Daily Calorie Goal", f"{int(calorie_goal)} kcal")
+    cal_goal = int(estimate_calories(st.session_state.goal, bmr, st.session_state.activity))
+    st.metric("🎯 Daily Calorie Target", f"{cal_goal} kcal")
 
-    input_method = st.radio("Choose Input Method:", ["Upload CSV", "Manual Entry"])
+    # Text-based meal analysis
+    st.subheader("🔍 Try Typing Meals to Analyze")
+    foods = st.text_area("Enter each food on a new line")
+    if st.button("Analyze Meals"):
+        results = [get_nutrition(f) for f in foods.splitlines() if f.strip()]
+        clean = [r for r in results if r]
+        if clean:
+            df = pd.DataFrame(clean)
+            st.dataframe(df)
+            totals = df.drop(columns="Food").sum()
+            st.write("**Total:**")
+            st.json(totals.to_dict())
+        else:
+            st.error("No valid entries found.")
 
-    if input_method == "Upload CSV":
-        uploaded_file = st.file_uploader("Upload CSV with a 'Food' column", type="csv")
-        if uploaded_file:
-            df = pd.read_csv(uploaded_file)
-            if "Food" in df.columns:
-                for food in df["Food"]:
-                    nutri_data = get_nutrition_data(food)
-                    if nutri_data:
-                        st.session_state.data_rows.append(nutri_data)
-            else:
-                st.error("CSV must contain 'Food' column")
+# ========== PAGE 2: MEAL PLANNER ========== #
+elif page == "Meal Planner":
+    st.title("🍽️ AI-Powered Meal Planner")
+    st.markdown("Create balanced meals personalized to your profile.")
 
-    if input_method == "Manual Entry":
-        food_items = st.text_area("Enter food items (one per line):")
-        if st.button("Analyze Nutrition"):
-            st.session_state.data_rows.clear()
-            for food in food_items.splitlines():
-                if food.strip():
-                    nutri_data = get_nutrition_data(food)
-                    if nutri_data:
-                        st.session_state.data_rows.append(nutri_data)
+    # Allow user to select dietary filters and number of days
+    filters = st.multiselect("Dietary Filters", ["vegetarian", "low carb", "high protein", "dairy free"])
+    days = st.slider("How many days to plan?", 1, 7, 3)
 
-    if st.session_state.data_rows:
-        result_df = pd.DataFrame(st.session_state.data_rows)
-        st.dataframe(result_df)
-        totals = result_df[["Calories", "Protein (g)", "Carbs (g)", "Fat (g)", "Sodium (mg)"]].sum()
-        st.metric("Total Calories", f"{totals['Calories']:.0f} kcal")
+    # Reset meal plan and grocery list
+    st.session_state.meal_plan = []
+    st.session_state.grocery_list = []
+    st.session_state.history = set()
 
-        donut_data = pd.DataFrame({
-            'Nutrient': ['Protein', 'Carbs', 'Fat'],
-            'Grams': [totals["Protein (g)"], totals["Carbs (g)"], totals["Fat (g)"]]
-        })
+    # Calorie goal from profile
+    bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
+    cal_goal = estimate_calories(st.session_state.goal, bmr, st.session_state.activity)
 
-        donut_chart = alt.Chart(donut_data).mark_arc(innerRadius=50).encode(
-            theta="Grams",
-            color="Nutrient",
-            tooltip=["Nutrient", "Grams"]
-        ).properties(width=350, height=350)
+    if st.button("🔄 Generate Plan"):
+        for d in range(days):
+            for meal_type in ["Breakfast", "Lunch", "Dinner"]:
+                # Split calories across meals
+                portion = 0.3 if meal_type == "Breakfast" else 0.4 if meal_type == "Lunch" else 0.3
+                target_cals = cal_goal * portion
 
-        st.altair_chart(donut_chart)
+                # Build query based on meal + filter
+                search_term = f"{meal_type.lower()} {random.choice(filters) if filters else ''}".strip()
+                options = search_foods(search_term)
 
-# --- PAGE: MEAL PLANNER ---
-elif selection == "Meal Planner":
-    st.title("🍽️ Personalized Meal Planner")
+                # Loop through search results to find something in range
+                for food in options:
+                    info = get_nutrition(food)
+                    if info and 0.8 * target_cals < info["Calories"] < 1.2 * target_cals:
+                        info["Day"] = f"Day {d+1}"
+                        info["Meal"] = meal_type
+                        st.session_state.meal_plan.append(info)
+                        st.session_state.grocery_list.append(info["Food"])
+                        st.session_state.history.add(food)
+                        break
 
-    if not st.session_state.age:
-        st.warning("Go to the Nutrition Analyzer page to enter your profile first.")
+    # Display results in table format
+    if st.session_state.meal_plan:
+        df = pd.DataFrame(st.session_state.meal_plan)[["Day", "Meal", "Food", "Calories", "Protein", "Carbs", "Fat"]]
+        st.dataframe(df, use_container_width=True)
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("📥 Download Plan", csv, file_name="meal_plan.csv", mime="text/csv")
+
+# ========== PAGE 3: GROCERY LIST ========== #
+elif page == "Grocery List":
+    st.title("🛒 Grocery List")
+
+    if not st.session_state.grocery_list:
+        st.info("No grocery list found. Run the Meal Planner first.")
     else:
-        calorie_goal = estimate_calories(
-            st.session_state.goal,
-            calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age),
-            st.session_state.activity
-        )
-
-        st.markdown(f"### 🌟 Daily Calorie Goal: `{int(calorie_goal)} kcal`")
-        st.markdown("---")
-
-        st.subheader("🎲 Click below to generate a fresh, adaptive meal plan!")
-
-        if st.button("Generate My Plan"):
-            goal = st.session_state.goal
-            # Larger, tagged meal pools
-            meal_bank = {
-                "Breakfast": [
-                    ("Oatmeal with berries", 300, "Weight Loss"),
-                    ("Egg white scramble with toast", 350, "Weight Loss"),
-                    ("Avocado toast with egg", 400, "Maintenance"),
-                    ("Protein pancake with peanut butter", 500, "Muscle Gain"),
-                    ("Breakfast burrito", 550, "Muscle Gain"),
-                    ("Banana protein smoothie", 400, "Maintenance")
-                ],
-                "Lunch": [
-                    ("Grilled chicken quinoa salad", 500, "Weight Loss"),
-                    ("Turkey wrap with hummus", 550, "Weight Loss"),
-                    ("Tuna poke bowl", 600, "Maintenance"),
-                    ("Tofu stir-fry with brown rice", 650, "Maintenance"),
-                    ("Ground beef and sweet potato bowl", 700, "Muscle Gain"),
-                    ("Grilled salmon and couscous", 750, "Muscle Gain")
-                ],
-                "Dinner": [
-                    ("Zucchini noodles with marinara", 450, "Weight Loss"),
-                    ("Grilled shrimp and veggies", 500, "Weight Loss"),
-                    ("Stuffed bell peppers", 600, "Maintenance"),
-                    ("Pasta with ground turkey and spinach", 700, "Maintenance"),
-                    ("Steak with mashed potatoes", 750, "Muscle Gain"),
-                    ("Chicken alfredo with broccoli", 800, "Muscle Gain")
-                ]
-            }
-
-            def select_meal(meals, goal):
-                filtered = [m for m in meals if m[2] == goal or m[2] == "Maintenance"]
-                return random.sample(filtered, 1)[0] if filtered else random.choice(meals)
-
-            breakfast = select_meal(meal_bank["Breakfast"], goal)
-            lunch = select_meal(meal_bank["Lunch"], goal)
-            dinner = select_meal(meal_bank["Dinner"], goal)
-
-            st.markdown(f"### 🥣 Breakfast: `{breakfast[0]}` — {breakfast[1]} kcal")
-            st.markdown(f"### 🥪 Lunch: `{lunch[0]}` — {lunch[1]} kcal")
-            st.markdown(f"### 🍲 Dinner: `{dinner[0]}` — {dinner[1]} kcal")
-
-        st.markdown("---")
-        st.caption("Smart meal planning with profile-based logic & varied outputs ✨")
-
-# --- PAGE: MENU SCANNER ---
-elif selection == "Menu Scanner":
-    st.title("📷 Menu Scanner")
-    uploaded_file = st.file_uploader("Upload a menu screenshot (.jpg, .png) or text file", type=["txt", "png", "jpg", "jpeg"])
-
-    menu_lines = []
-    if uploaded_file:
-        if uploaded_file.name.endswith(".txt"):
-            raw_text = uploaded_file.read().decode("utf-8")
-            st.text_area("Scanned Menu Text", value=raw_text, height=200)
-            menu_lines = raw_text.splitlines()
-        else:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Menu", use_column_width=True)
-            st.info("🧠 OCR not enabled in this version, please use .txt upload for now.")
-
-    dish_lines = [line.strip() for line in menu_lines if len(line.strip()) > 3]
-    if dish_lines:
-        suggestions = []
-        for line in dish_lines:
-            nutri = get_nutrition_data(line)
-            if nutri and nutri['Calories'] <= estimate_calories(st.session_state.goal, calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age), st.session_state.activity) * 0.4:
-                suggestions.append(nutri['Food'])
-
-        if suggestions:
-            st.subheader("✅ Healthier Dish Suggestions")
-            for s in suggestions:
-                st.markdown(f"- {s}")
-        else:
-            st.info("No suitable dishes found. Try uploading a clearer text menu.")
+        # Extract first word of each food item to generalize grocery items
+        items = sorted(set([i.split()[0].capitalize() for i in st.session_state.grocery_list]))
+        st.write("Based on your meal plan:")
+        for i in items:
+            st.markdown(f"- [ ] {i}")
