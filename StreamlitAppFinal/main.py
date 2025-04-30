@@ -137,25 +137,47 @@ elif selection == "Meal Planner":
         st.write(f"Daily Calorie Goal: **{int(calorie_goal)} kcal**")
 
         meals = {
-            "Breakfast": ["Oatmeal with banana", "Scrambled eggs with spinach", "Smoothie with protein powder"],
-            "Lunch": ["Grilled chicken salad", "Turkey wrap with veggies", "Quinoa bowl with tofu"],
-            "Dinner": ["Baked salmon with rice", "Veggie stir-fry with tofu", "Grilled steak with sweet potato"]
+            "Breakfast": [
+                ("Oatmeal with banana", "https://www.allrecipes.com/recipe/244251/easy-oatmeal-with-banana-and-peanut-butter/", "https://images.media-allrecipes.com/userphotos/560x315/4343967.jpg"),
+                ("Scrambled eggs with spinach", "https://www.bbcgoodfood.com/recipes/creamy-scrambled-eggs-spinach", "https://images.immediate.co.uk/production/volatile/sites/30/2020/08/scrambled-eggs-spinach-7cdba91.jpg"),
+                ("Smoothie with protein powder", "https://www.allrecipes.com/recipe/232028/banana-protein-smoothie/", "https://images.media-allrecipes.com/userphotos/560x315/1094072.jpg")
+            ],
+            "Lunch": [
+                ("Grilled chicken salad", "https://www.allrecipes.com/recipe/214675/grilled-chicken-salad-with-seasonal-fruit/", "https://images.media-allrecipes.com/userphotos/560x315/1012550.jpg"),
+                ("Turkey wrap with veggies", "https://www.myrecipes.com/recipe/turkey-veggie-wrap", "https://cdn1.myrecipes.com/sites/default/files/image/recipes/ck/turkey-wrap-ck-258660-x.jpg"),
+                ("Quinoa bowl with tofu", "https://www.bonappetit.com/recipe/quinoa-and-tofu-bowl", "https://assets.bonappetit.com/photos/57acfbe71b3340441497511d/1:1/w_2560%2Cc_limit/quinoa-tofu-bowl.jpg")
+            ],
+            "Dinner": [
+                ("Baked salmon with rice", "https://www.allrecipes.com/recipe/214488/baked-salmon-fillets-dijon/", "https://images.media-allrecipes.com/userphotos/560x315/4471178.jpg"),
+                ("Veggie stir-fry with tofu", "https://www.loveandlemons.com/tofu-stir-fry/", "https://cdn.loveandlemons.com/wp-content/uploads/2021/01/tofu-stir-fry.jpg"),
+                ("Grilled steak with sweet potato", "https://www.eatingwell.com/recipe/250660/grilled-steak-sweet-potatoes-with-orange-avocado-salsa/", "https://images.media-allrecipes.com/userphotos/560x315/2757991.jpg")
+            ]
         }
 
         if st.button("Randomize Meal Plan"):
             for meal, options in meals.items():
-                st.markdown(f"**{meal}:** {random.choice(options)}")
+                dish, link, img = random.choice(options)
+                st.image(img, width=250)
+                st.markdown(f"**{meal}:** [{dish}]({link})")
 
 # --- PAGE: MENU SCANNER ---
 elif selection == "Menu Scanner":
     st.title("📷 Menu Scanner")
-    uploaded_file = st.file_uploader("Upload a text file of a menu (e.g., .txt)", type="txt")
+    uploaded_file = st.file_uploader("Upload a menu screenshot (.jpg, .png) or text file", type=["txt", "png", "jpg", "jpeg"])
 
+    menu_lines = []
     if uploaded_file:
-        raw_text = uploaded_file.read().decode("utf-8")
-        st.text_area("Scanned Menu Text", value=raw_text, height=200)
+        if uploaded_file.name.endswith(".txt"):
+            raw_text = uploaded_file.read().decode("utf-8")
+            st.text_area("Scanned Menu Text", value=raw_text, height=200)
+            menu_lines = raw_text.splitlines()
+        else:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Menu", use_column_width=True)
+            st.info("🧠 OCR not enabled in this version, please use .txt upload for now.")
 
-        dish_lines = [line.strip() for line in raw_text.splitlines() if len(line.strip()) > 3]
+    dish_lines = [line.strip() for line in menu_lines if len(line.strip()) > 3]
+    if dish_lines:
         suggestions = []
         for line in dish_lines:
             nutri = get_nutrition_data(line)
