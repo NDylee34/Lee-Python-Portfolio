@@ -4,7 +4,6 @@ import pandas as pd
 import requests
 import matplotlib.pyplot as plt
 import altair as alt
-from dotenv import load_dotenv
 import os
 import random
 from PIL import Image
@@ -13,7 +12,7 @@ import io
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="NutriCompare", layout="wide")
 
-# --- LOAD ENV VARS ---
+# --- LOAD SECRETS ---
 NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
 NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
 
@@ -61,7 +60,7 @@ def get_nutrition_data(food):
             "Sodium (mg)": nutrients.get("nf_sodium", 0)
         }
     else:
-        st.error("API error: check credentials or query")
+        st.error(f"API error: {response.status_code} — {response.text}")
         return None
 
 # --- PAGE NAVIGATION ---
@@ -165,3 +164,7 @@ elif selection == "Menu Scanner":
                 st.markdown(f"- {s}")
         else:
             st.info("No suitable dishes found. Try uploading a clearer text menu.")
+
+# --- FOOTER ---
+st.markdown("---")
+st.caption("NutriCompare © 2025 • Cloud-deployed • Secrets-secured")
