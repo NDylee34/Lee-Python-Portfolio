@@ -42,10 +42,10 @@ if st.session_state.selected_tab == "🏠 Home":
     st.markdown("<h3 style='text-align: center;'>Your Personal Wellness Companion</h3>", unsafe_allow_html=True)
     st.markdown("---")
     st.image(
-        "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
-        use_column_width=True,
-        caption="Breathe. Reflect. Thrive."
-    )
+    "https://images.unsplash.com/photo-1554306274-f23873d9a26b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1400&q=80",
+    caption="Breathe. Reflect. Thrive.",
+    width=800
+)
 
     st.markdown("### 👋 Welcome!")
     st.write("ThriveHub helps you track your nutrition, check in with your mood, move your body, and reflect on your lifestyle. Let’s thrive together — one mindful day at a time.")
