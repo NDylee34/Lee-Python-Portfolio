@@ -105,12 +105,29 @@ if page == "Nutrition Analyzer":
             st.json(totals.to_dict())
 
             # Donut chart
-            fig, ax = plt.subplots()
-            ax.pie([totals["Protein"], totals["Carbs"], totals["Fat"]],
-                   labels=["Protein", "Carbs", "Fat"],
-                   autopct="%1.1f%%",
-                   startangle=90, wedgeprops={"width": 0.3})
+            import numpy as np
+            
+            labels = ["Protein", "Carbs", "Fat"]
+            values = [totals["Protein"], totals["Carbs"], totals["Fat"]]
+            colors = ["#6A5ACD", "#20B2AA", "#FF8C00"]
+            
+            fig, ax = plt.subplots(figsize=(5, 5))
+            wedges, texts, autotexts = ax.pie(
+                values,
+                labels=labels,
+                autopct="%1.1f%%",
+                startangle=90,
+                wedgeprops={"width": 0.4},
+                colors=colors,
+                textprops={"fontsize": 12})
+            
+            centre_circle = plt.Circle((0, 0), 0.70, fc="white")
+            fig.gca().add_artist(centre_circle)
+            
+            ax.axis("equal")
+            plt.title("Macronutrient Breakdown", fontsize=16)
             st.pyplot(fig)
+
         else:
             st.warning("No valid entries found.")
 
