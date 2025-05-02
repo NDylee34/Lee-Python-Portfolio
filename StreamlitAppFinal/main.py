@@ -2,14 +2,13 @@ import streamlit as st
 import pandas as pd
 import requests
 import altair as alt
-import os
 import random
 from PIL import Image
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="🥗 NutriCompare: Smart Meal & Nutrition Analyzer", layout="wide")
 
-# --- LOAD SECRETS ---
+# --- SECRETS ---
 NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
 NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
 
@@ -25,25 +24,15 @@ for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"
     if key not in st.session_state:
         st.session_state[key] = None if key != "data_rows" else []
 
-# --- BMR CALCULATION FUNCTION ---
+# --- FUNCTIONS ---
 def calculate_bmr(gender, weight, height, age):
-    if gender == "Male":
-        return 10 * weight + 6.25 * height - 5 * age + 5
-    else:
-        return 10 * weight + 6.25 * height - 5 * age - 161
+    return 10 * weight + 6.25 * height - 5 * age + (5 if gender == "Male" else -161)
 
-# --- CALORIE GOAL ESTIMATION ---
 def estimate_calories(goal, bmr, activity):
-    factor = 1.2 if activity == "Sedentary" else 1.55 if activity == "Moderate" else 1.725
-    base = bmr * factor
-    if goal == "Weight Loss":
-        return base - 500
-    elif goal == "Muscle Gain":
-        return base + 300
-    else:
-        return base
+    factor = {"Sedentary": 1.2, "Moderate": 1.55, "Active": 1.725}[activity]
+    adjustment = {"Weight Loss": -500, "Maintenance": 0, "Muscle Gain": 300}[goal]
+    return bmr * factor + adjustment
 
-# --- GET NUTRITION DATA ---
 def get_nutrition_data(food):
     response = requests.post(API_URL, headers=HEADERS, json={"query": food})
     if response.status_code == 200:
@@ -57,16 +46,16 @@ def get_nutrition_data(food):
             "Sodium (mg)": nutrients.get("nf_sodium", 0)
         }
     else:
-        st.error(f"API error: {response.status_code} — {response.text}")
+        st.error(f"API error: {response.status_code}")
         return None
 
 # --- PAGE NAVIGATION ---
 pages = ["Nutrition Analyzer", "Meal Planner", "Menu Scanner"]
 selection = st.sidebar.radio("Navigation", pages)
 
-# --- PAGE: NUTRITION ANALYZER ---
+# --- PAGE 1: NUTRITION ANALYZER ---
 if selection == "Nutrition Analyzer":
-    st.title("🥗 NutriCompare: Nutrition Analyzer")
+    st.title("🥗 Nutrition Analyzer")
     with st.sidebar:
         st.subheader("👤 Your Profile")
         st.session_state.gender = st.selectbox("Gender", ["Male", "Female"])
@@ -123,64 +112,85 @@ if selection == "Nutrition Analyzer":
 
         st.altair_chart(donut_chart)
 
-# --- PAGE: MEAL PLANNER ---
+# --- PAGE 2: MEAL PLANNER ---
 elif selection == "Meal Planner":
     st.title("🍽️ Personalized Meal Planner")
 
     if not st.session_state.age:
-        st.warning("Go to the Nutrition Analyzer page to enter your profile first.")
+        st.warning("Please complete your profile on the Nutrition Analyzer page.")
     else:
         calorie_goal = estimate_calories(
             st.session_state.goal,
             calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age),
             st.session_state.activity
         )
-
         st.markdown(f"### 🌟 Daily Calorie Goal: `{int(calorie_goal)} kcal`")
         st.markdown("---")
 
-        st.subheader("🎲 Click below to generate a fresh meal plan!")
+        dietary_pref = st.multiselect("🍽️ Select preferences (optional):", ["Vegetarian", "High Protein", "Low Carb"])
+
+        st.subheader("🎲 Click to generate a smart meal plan!")
 
         if st.button("Generate My Plan"):
+            # Expanded meal pool
             breakfast_pool = [
-                ("Oatmeal with berries", "https://www.allrecipes.com/recipe/244251/easy-oatmeal-with-banana-and-peanut-butter/"),
-                ("Greek yogurt & honey", "https://www.allrecipes.com/recipe/223180/honey-greek-yogurt/"),
-                ("Spinach mushroom omelette", "https://www.allrecipes.com/recipe/23640/mushroom-omelet/"),
-                ("Peanut butter toast & banana", "https://www.eatingwell.com/recipe/252652/peanut-butter-banana-toast/"),
-                ("Protein smoothie with almond milk", "https://www.allrecipes.com/recipe/232028/banana-protein-smoothie/")
+                {"meal": "Oatmeal with fruit", "calories": 300, "tags": ["Vegetarian"]},
+                {"meal": "Greek yogurt with granola", "calories": 400, "tags": ["Vegetarian", "High Protein"]},
+                {"meal": "Scrambled eggs with toast", "calories": 350, "tags": ["High Protein"]},
+                {"meal": "Smoothie with protein powder", "calories": 500, "tags": ["Vegetarian", "High Protein", "Low Carb"]},
+                {"meal": "Avocado toast", "calories": 320, "tags": ["Vegetarian", "Low Carb"]},
+                {"meal": "Protein pancakes", "calories": 430, "tags": ["Vegetarian", "High Protein"]},
+                {"meal": "Egg muffins with spinach", "calories": 310, "tags": ["Low Carb", "High Protein"]},
+                {"meal": "Banana chia pudding", "calories": 340, "tags": ["Vegetarian", "Low Carb"]},
+                {"meal": "Tofu breakfast scramble", "calories": 370, "tags": ["Vegetarian", "High Protein"]},
+                {"meal": "Apple almond butter toast", "calories": 380, "tags": ["Vegetarian"]},
             ]
             lunch_pool = [
-                ("Quinoa bowl with roasted veggies", "https://www.loveandlemons.com/roasted-veggie-quinoa-bowl/"),
-                ("Grilled chicken wrap", "https://www.allrecipes.com/recipe/218634/grilled-chicken-wraps/"),
-                ("Tofu poke bowl", "https://www.allrecipes.com/recipe/270351/tofu-poke-bowl/"),
-                ("Turkey sandwich & side salad", "https://www.allrecipes.com/recipe/240820/healthy-turkey-sandwich/"),
-                ("Lentil soup with avocado toast", "https://www.allrecipes.com/recipe/26692/lentil-soup/"),
+                {"meal": "Grilled chicken salad", "calories": 500, "tags": ["Low Carb", "High Protein"]},
+                {"meal": "Veggie wrap", "calories": 450, "tags": ["Vegetarian"]},
+                {"meal": "Quinoa and black bean bowl", "calories": 550, "tags": ["Vegetarian", "High Protein"]},
+                {"meal": "Turkey sandwich", "calories": 480, "tags": ["High Protein"]},
+                {"meal": "Tofu stir-fry", "calories": 520, "tags": ["Vegetarian", "Low Carb"]},
+                {"meal": "Shrimp and avocado salad", "calories": 510, "tags": ["Low Carb", "High Protein"]},
+                {"meal": "Lentil soup", "calories": 490, "tags": ["Vegetarian"]},
+                {"meal": "Grilled halloumi and veggies", "calories": 530, "tags": ["Vegetarian", "High Protein"]},
+                {"meal": "Chicken quinoa power bowl", "calories": 560, "tags": ["High Protein"]},
+                {"meal": "Falafel and tabbouleh plate", "calories": 540, "tags": ["Vegetarian"]},
             ]
             dinner_pool = [
-                ("Salmon & asparagus", "https://www.allrecipes.com/recipe/240708/baked-salmon-asparagus-foil-packets/"),
-                ("Tofu veggie stir-fry", "https://www.loveandlemons.com/tofu-stir-fry/"),
-                ("Zucchini noodles with chicken", "https://www.eatingwell.com/recipe/268709/zucchini-noodles-with-chicken-tomatoes-avocado-pesto/"),
-                ("Steak & sweet potato", "https://www.eatingwell.com/recipe/250660/grilled-steak-sweet-potatoes-with-orange-avocado-salsa/"),
-                ("Shrimp & brown rice bowl", "https://www.allrecipes.com/recipe/273275/garlic-shrimp-stir-fry/")
+                {"meal": "Baked salmon with broccoli", "calories": 600, "tags": ["Low Carb", "High Protein"]},
+                {"meal": "Lentil stew", "calories": 550, "tags": ["Vegetarian"]},
+                {"meal": "Zucchini noodles with chicken", "calories": 530, "tags": ["Low Carb", "High Protein"]},
+                {"meal": "Beef stir-fry", "calories": 580, "tags": ["High Protein", "Low Carb"]},
+                {"meal": "Chickpea curry", "calories": 540, "tags": ["Vegetarian"]},
+                {"meal": "Stuffed bell peppers", "calories": 560, "tags": ["Vegetarian", "Low Carb"]},
+                {"meal": "Grilled tofu with miso glaze", "calories": 500, "tags": ["Vegetarian", "High Protein"]},
+                {"meal": "Shrimp cauliflower rice bowl", "calories": 520, "tags": ["Low Carb", "High Protein"]},
+                {"meal": "Eggplant parm (light)", "calories": 540, "tags": ["Vegetarian"]},
+                {"meal": "Chicken fajita bowl", "calories": 570, "tags": ["Low Carb", "High Protein"]},
             ]
 
-            breakfast = random.choice(breakfast_pool)
-            lunch = random.choice(lunch_pool)
-            dinner = random.choice(dinner_pool)
+            def filter_meals(pool, max_cal, prefs):
+                return [
+                    item["meal"] for item in pool
+                    if item["calories"] <= max_cal and (not prefs or any(tag in item["tags"] for tag in prefs))
+                ] or [item["meal"] for item in pool]
+
+            b = random.choice(filter_meals(breakfast_pool, calorie_goal * 0.3, dietary_pref))
+            l = random.choice(filter_meals(lunch_pool, calorie_goal * 0.35, dietary_pref))
+            d = random.choice(filter_meals(dinner_pool, calorie_goal * 0.35, dietary_pref))
 
             st.markdown("### 🥣 Breakfast")
-            st.markdown(f"**[{breakfast[0]}]({breakfast[1]})**")
-
+            st.markdown(f"- {b}")
             st.markdown("### 🥪 Lunch")
-            st.markdown(f"**[{lunch[0]}]({lunch[1]})**")
-
+            st.markdown(f"- {l}")
             st.markdown("### 🍲 Dinner")
-            st.markdown(f"**[{dinner[0]}]({dinner[1]})**")
+            st.markdown(f"- {d}")
 
         st.markdown("---")
-        st.caption("Randomized daily meals powered by curated healthy recipes ✨")
+        st.caption("Meals vary daily based on your preferences and nutrition goals 🎯")
 
-# --- PAGE: MENU SCANNER ---
+# --- PAGE 3: MENU SCANNER ---
 elif selection == "Menu Scanner":
     st.title("📷 Menu Scanner")
     uploaded_file = st.file_uploader("Upload a menu screenshot (.jpg, .png) or text file", type=["txt", "png", "jpg", "jpeg"])
@@ -194,14 +204,19 @@ elif selection == "Menu Scanner":
         else:
             image = Image.open(uploaded_file)
             st.image(image, caption="Uploaded Menu", use_column_width=True)
-            st.info("🧠 OCR not enabled in this version, please use .txt upload for now.")
+            st.info("🧠 OCR not enabled in this version, please upload a .txt file.")
 
     dish_lines = [line.strip() for line in menu_lines if len(line.strip()) > 3]
     if dish_lines:
+        calorie_goal = estimate_calories(
+            st.session_state.goal,
+            calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age),
+            st.session_state.activity
+        )
         suggestions = []
         for line in dish_lines:
             nutri = get_nutrition_data(line)
-            if nutri and nutri['Calories'] <= estimate_calories(st.session_state.goal, calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age), st.session_state.activity) * 0.4:
+            if nutri and nutri['Calories'] <= calorie_goal * 0.4:
                 suggestions.append(nutri['Food'])
 
         if suggestions:
@@ -209,4 +224,4 @@ elif selection == "Menu Scanner":
             for s in suggestions:
                 st.markdown(f"- {s}")
         else:
-            st.info("No suitable dishes found. Try uploading a clearer text menu.")
+            st.info("No suitable dishes found. Try uploading a cleaner or shorter menu.")
