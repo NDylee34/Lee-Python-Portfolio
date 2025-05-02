@@ -5,6 +5,7 @@ import altair as alt
 import random
 from datetime import datetime
 from PIL import Image
+import streamlit.components.v1 as components
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="🌿 ThriveHub: Your Personal Wellness Companion", layout="wide")
@@ -20,9 +21,54 @@ HEADERS = {
 }
 
 # --- SESSION STATE DEFAULTS ---
-for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log"]:
+for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log", "selected_tab"]:
     if key not in st.session_state:
         st.session_state[key] = None if key not in ["data_rows", "mood_log", "activity_log"] else []
+
+if st.session_state.selected_tab is None:
+    st.session_state.selected_tab = "🏠 Home"
+
+# --- NAVIGATION ---
+tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
+selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
+
+if selection != st.session_state.selected_tab:
+    st.session_state.selected_tab = selection
+    st.experimental_rerun()
+
+# --- HOME PAGE ---
+if st.session_state.selected_tab == "🏠 Home":
+    st.markdown("<h1 style='text-align: center;'>🌿 ThriveHub</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>Your Personal Wellness Companion</h3>", unsafe_allow_html=True)
+    st.markdown("---")
+    st.image(
+        "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+        use_column_width=True,
+        caption="Breathe. Reflect. Thrive."
+    )
+
+    st.markdown("### 👋 Welcome!")
+    st.write("ThriveHub helps you track your nutrition, check in with your mood, move your body, and reflect on your lifestyle. Let’s thrive together — one mindful day at a time.")
+
+    st.markdown("### 🌟 Choose where to begin:")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🥗 Nutrition"):
+            st.session_state.selected_tab = "🏋️ Nutrition"
+            st.experimental_rerun()
+    with col2:
+        if st.button("🧘 Mood & Mind"):
+            st.session_state.selected_tab = "🧘 Mood & Mind"
+            st.experimental_rerun()
+    col3, col4 = st.columns(2)
+    with col3:
+        if st.button("🚶 Fitness Boost"):
+            st.session_state.selected_tab = "🚶 Fitness Boost"
+            st.experimental_rerun()
+    with col4:
+        if st.button("📈 Lifestyle Tracker"):
+            st.session_state.selected_tab = "📈 Lifestyle Tracker"
+            st.experimental_rerun()
 
 # --- FUNCTIONS ---
 def calculate_bmr(gender, weight, height, age):
@@ -49,53 +95,9 @@ def get_nutrition_data(food):
         st.error(f"API error: {response.status_code}")
         return None
 
-# --- SIDEBAR NAVIGATION ---
-tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
-if "selected_tab" not in st.session_state:
-    st.session_state["selected_tab"] = "🏠 Home"
-
-selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state["selected_tab"]))
-st.session_state["selected_tab"] = selection
-
-# --- HOME TAB ---
-if selection == "🏠 Home":
-    st.markdown("<h1 style='text-align: center;'>🌿 ThriveHub</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center;'>Your Personal Wellness Companion</h3>", unsafe_allow_html=True)
-    st.markdown("---")
-
-    st.image("https://images.unsplash.com/photo-1571019613914-85f342c41a6c?auto=format&fit=crop&w=1650&q=80", use_column_width=True)
-
-    st.markdown("### 👋 Welcome!")
-    st.write(
-        "ThriveHub is designed to support your physical and mental wellness. "
-        "Whether you're tracking your nutrition, checking in with your mood, planning a workout, or just setting weekly goals — you're in the right place."
-    )
-
-    st.markdown("### 🧭 Where would you like to start?")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🥗 Go to Nutrition"):
-            st.session_state["selected_tab"] = "🏋️ Nutrition"
-    with col2:
-        if st.button("🧠 Go to Mood & Mind"):
-            st.session_state["selected_tab"] = "🧘 Mood & Mind"
-
-    col3, col4 = st.columns(2)
-    with col3:
-        if st.button("💪 Go to Fitness"):
-            st.session_state["selected_tab"] = "🚶 Fitness Boost"
-    with col4:
-        if st.button("📊 Go to Lifestyle Tracker"):
-            st.session_state["selected_tab"] = "📈 Lifestyle Tracker"
-
-    # Redirect if button pressed
-    if "selected_tab" in st.session_state and st.session_state["selected_tab"] != "🏠 Home":
-        st.experimental_rerun()
-
-# --- TAB 1: NUTRITION ---
-if selection == "🍽️ Nutrition":
+# --- NUTRITION PAGE ---
+if st.session_state.selected_tab == "🏋️ Nutrition":
     st.title("🍎 Nutrition Tracker")
-
     with st.sidebar:
         st.subheader("👤 Your Profile")
         st.session_state.gender = st.selectbox("Gender", ["Male", "Female"])
@@ -152,8 +154,8 @@ if selection == "🍽️ Nutrition":
 
         st.altair_chart(donut_chart)
 
-# --- TAB 2: MOOD & MIND ---
-elif selection == "🧘 Mood & Mind":
+# --- MOOD & MIND PAGE ---
+elif st.session_state.selected_tab == "🧘 Mood & Mind":
     st.title("🧠 Mood & Mind")
 
     mood = st.selectbox("How are you feeling?", ["Happy", "Stressed", "Tired", "Energetic", "Anxious", "Motivated"])
@@ -161,13 +163,21 @@ elif selection == "🧘 Mood & Mind":
 
     st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
 
-    if mood in ["Happy", "Energetic"]:
-        st.markdown("🎧 [Feel Good Hits](https://open.spotify.com/playlist/37i9dQZF1DXdPec7aLTmlC)")
-    elif mood in ["Tired", "Stressed"]:
-        st.markdown("🎧 [Chill Vibes](https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO)")
-    else:
-        st.markdown("🎧 [Motivation Mix](https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0)")
+    st.markdown("### 🎧 Curated Playlist for You")
 
+    playlist_embeds = {
+        "Happy": "37i9dQZF1DXdPec7aLTmlC",         # Feel Good Hits
+        "Energetic": "37i9dQZF1DWUVpAXiEPK8P",      # Beast Mode
+        "Tired": "37i9dQZF1DX0SM0LYsmbMT",          # Acoustic Morning
+        "Stressed": "37i9dQZF1DX6tGOWKH2f3j",       # Stress Relief
+        "Anxious": "37i9dQZF1DX4sWSpwq3LiO",        # Peaceful Piano
+        "Motivated": "37i9dQZF1DX70RN3TfWWJh",      # Power Workout
+    }
+
+    embed_url = f"https://open.spotify.com/embed/playlist/{playlist_embeds[mood]}"
+    components.iframe(embed_url, height=80, width=700)
+
+    st.markdown("### 💬 Quote of the Day")
     quotes = {
         "Happy": "“Happiness is not something ready made. It comes from your own actions.” – Dalai Lama",
         "Stressed": "“Almost everything will work again if you unplug it for a few minutes, including you.” – Anne Lamott",
@@ -179,8 +189,8 @@ elif selection == "🧘 Mood & Mind":
 
     st.success(quotes[mood])
 
-# --- TAB 3: FITNESS BOOST ---
-elif selection == "🏋️ Fitness Boost":
+# --- FITNESS BOOST PAGE ---
+elif st.session_state.selected_tab == "🚶 Fitness Boost":
     st.title("💪 Fitness Boost")
 
     energy = st.slider("How much energy do you have right now?", 0, 100, 50)
@@ -195,8 +205,8 @@ elif selection == "🏋️ Fitness Boost":
         st.session_state.activity_log.append({"date": datetime.now().date(), "energy": energy})
         st.success("Activity logged!")
 
-# --- TAB 4: LIFESTYLE TRACKER ---
-elif selection == "📈 Lifestyle Tracker":
+# --- LIFESTYLE TRACKER PAGE ---
+elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     st.title("📊 Lifestyle Tracker")
 
     st.subheader("📅 Mood Over Time")
