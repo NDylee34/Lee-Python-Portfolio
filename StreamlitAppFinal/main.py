@@ -1,180 +1,212 @@
 import streamlit as st
 import pandas as pd
 import requests
+import altair as alt
+import os
 import random
-import matplotlib.pyplot as plt
-from datetime import datetime
+from PIL import Image
 
-# --- CONFIGURE PAGE ---
+# --- PAGE CONFIG ---
 st.set_page_config(page_title="🥗 NutriCompare: Smart Meal & Nutrition Analyzer", layout="wide")
 
-# --- NUTRITIONIX API (for Nutrition Analyzer only) ---
+# --- LOAD SECRETS ---
 NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
 NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
-NUTRITIONIX_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
+
+API_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
 HEADERS = {
     "x-app-id": NUTRITIONIX_APP_ID,
     "x-app-key": NUTRITIONIX_API_KEY,
     "Content-Type": "application/json"
 }
 
-# --- SESSION STATE INIT ---
-def init_state():
-    defaults = {
-        "gender": "Female",
-        "weight": 60.0,
-        "height": 165.0,
-        "age": 25,
-        "goal": "Maintenance",
-        "activity": "Moderate",
-        "meal_plan": [],
-        "grocery_list": []
-    }
-    for k, v in defaults.items():
-        if k not in st.session_state:
-            st.session_state[k] = v
+# --- SESSION STATE DEFAULTS ---
+for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"]:
+    if key not in st.session_state:
+        st.session_state[key] = None if key != "data_rows" else []
 
-init_state()
+# --- BMR CALCULATION FUNCTION ---
+def calculate_bmr(gender, weight, height, age):
+    if gender == "Male":
+        return 10 * weight + 6.25 * height - 5 * age + 5
+    else:
+        return 10 * weight + 6.25 * height - 5 * age - 161
 
-# --- CALCULATIONS ---
-def calculate_bmr(g, w, h, a):
-    return 10 * w + 6.25 * h - 5 * a + (5 if g == "Male" else -161)
-
+# --- CALORIE GOAL ESTIMATION ---
 def estimate_calories(goal, bmr, activity):
-    factor = {"Sedentary": 1.2, "Moderate": 1.55, "Active": 1.725}[activity]
+    factor = 1.2 if activity == "Sedentary" else 1.55 if activity == "Moderate" else 1.725
     base = bmr * factor
-    return base + (300 if goal == "Muscle Gain" else -500 if goal == "Weight Loss" else 0)
+    if goal == "Weight Loss":
+        return base - 500
+    elif goal == "Muscle Gain":
+        return base + 300
+    else:
+        return base
 
-# --- LOCAL MEAL BANK ---
-meal_bank = [
-    {"Meal": "Oatmeal with Berries", "Type": "Breakfast", "Calories": 350, "Protein": 12, "Carbs": 45, "Fat": 10, "Tags": ["vegetarian"]},
-    {"Meal": "Greek Yogurt Parfait", "Type": "Breakfast", "Calories": 300, "Protein": 18, "Carbs": 25, "Fat": 8, "Tags": ["high protein"]},
-    {"Meal": "Grilled Chicken Bowl", "Type": "Lunch", "Calories": 500, "Protein": 38, "Carbs": 30, "Fat": 20, "Tags": ["high protein"]},
-    {"Meal": "Veggie Stir Fry", "Type": "Lunch", "Calories": 420, "Protein": 14, "Carbs": 40, "Fat": 18, "Tags": ["vegetarian", "dairy free"]},
-    {"Meal": "Tofu Curry with Rice", "Type": "Dinner", "Calories": 530, "Protein": 22, "Carbs": 60, "Fat": 18, "Tags": ["vegetarian"]},
-    {"Meal": "Salmon with Quinoa", "Type": "Dinner", "Calories": 600, "Protein": 42, "Carbs": 25, "Fat": 24, "Tags": ["high protein"]},
-    {"Meal": "Chickpea Salad", "Type": "Lunch", "Calories": 380, "Protein": 16, "Carbs": 35, "Fat": 12, "Tags": ["vegetarian"]},
-    {"Meal": "Egg & Avocado Toast", "Type": "Breakfast", "Calories": 320, "Protein": 14, "Carbs": 28, "Fat": 16, "Tags": []},
-    {"Meal": "Chicken Fajita Bowl", "Type": "Dinner", "Calories": 550, "Protein": 36, "Carbs": 45, "Fat": 22, "Tags": []},
-]
+# --- GET NUTRITION DATA ---
+def get_nutrition_data(food):
+    response = requests.post(API_URL, headers=HEADERS, json={"query": food})
+    if response.status_code == 200:
+        nutrients = response.json()["foods"][0]
+        return {
+            "Food": nutrients["food_name"],
+            "Calories": nutrients["nf_calories"],
+            "Protein (g)": nutrients["nf_protein"],
+            "Carbs (g)": nutrients["nf_total_carbohydrate"],
+            "Fat (g)": nutrients["nf_total_fat"],
+            "Sodium (mg)": nutrients.get("nf_sodium", 0)
+        }
+    else:
+        st.error(f"API error: {response.status_code} — {response.text}")
+        return None
 
 # --- PAGE NAVIGATION ---
-pages = ["Nutrition Analyzer", "Meal Planner", "Grocery List"]
-page = st.sidebar.radio("📂 Navigate", pages)
+pages = ["Nutrition Analyzer", "Meal Planner", "Menu Scanner"]
+selection = st.sidebar.radio("Navigation", pages)
 
-# --- SIDEBAR PROFILE ---
-with st.sidebar:
-    st.subheader("👤 Your Profile")
-    st.session_state.gender = st.selectbox("Gender", ["Male", "Female"], index=["Male", "Female"].index(st.session_state.gender))
-    st.session_state.weight = st.number_input("Weight (kg)", value=st.session_state.weight)
-    st.session_state.height = st.number_input("Height (cm)", value=st.session_state.height)
-    st.session_state.age = st.slider("Age", 12, 80, value=st.session_state.age)
-    st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"], index=["Maintenance", "Weight Loss", "Muscle Gain"].index(st.session_state.goal))
-    st.session_state.activity = st.selectbox("Activity", ["Sedentary", "Moderate", "Active"], index=["Sedentary", "Moderate", "Active"].index(st.session_state.activity))
+# --- PAGE: NUTRITION ANALYZER ---
+if selection == "Nutrition Analyzer":
+    st.title("🥗 NutriCompare: Nutrition Analyzer")
+    with st.sidebar:
+        st.subheader("👤 Your Profile")
+        st.session_state.gender = st.selectbox("Gender", ["Male", "Female"])
+        st.session_state.weight = st.number_input("Weight (kg)", value=65.0)
+        st.session_state.height = st.number_input("Height (cm)", value=170.0)
+        st.session_state.age = st.slider("Age", 12, 80, 25)
+        st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"])
+        st.session_state.activity = st.selectbox("Activity Level", ["Sedentary", "Moderate", "Active"])
 
-bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
-cal_goal = int(estimate_calories(st.session_state.goal, bmr, st.session_state.activity))
+    bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
+    calorie_goal = estimate_calories(st.session_state.goal, bmr, st.session_state.activity)
+    st.sidebar.metric("Estimated Daily Calorie Goal", f"{int(calorie_goal)} kcal")
 
-# --- PAGE 1: NUTRITION ANALYZER ---
-if page == "Nutrition Analyzer":
-    st.title("📊 Nutrition Analyzer")
-    st.metric("🎯 Estimated Calorie Target", f"{cal_goal} kcal")
+    input_method = st.radio("Choose Input Method:", ["Upload CSV", "Manual Entry"])
 
-    st.subheader("🔍 Enter What You Ate")
-    foods = st.text_area("Describe your meals (one item per line)")
+    if input_method == "Upload CSV":
+        uploaded_file = st.file_uploader("Upload CSV with a 'Food' column", type="csv")
+        if uploaded_file:
+            df = pd.read_csv(uploaded_file)
+            if "Food" in df.columns:
+                for food in df["Food"]:
+                    nutri_data = get_nutrition_data(food)
+                    if nutri_data:
+                        st.session_state.data_rows.append(nutri_data)
+            else:
+                st.error("CSV must contain 'Food' column")
 
-    if st.button("Analyze Nutrition"):
-        rows = []
-        for food in foods.splitlines():
-            if food.strip():
-                res = requests.post(NUTRITIONIX_URL, headers=HEADERS, json={"query": food})
-                if res.status_code == 200:
-                    data = res.json()["foods"][0]
-                    rows.append({
-                        "Food": data["food_name"].title(),
-                        "Calories": data["nf_calories"],
-                        "Protein": data["nf_protein"],
-                        "Carbs": data["nf_total_carbohydrate"],
-                        "Fat": data["nf_total_fat"]
-                    })
-        if rows:
-            df = pd.DataFrame(rows)
-            st.dataframe(df)
-            totals = df.drop(columns="Food").sum()
-            st.write("### Summary")
-            st.json(totals.to_dict())
+    if input_method == "Manual Entry":
+        food_items = st.text_area("Enter food items (one per line):")
+        if st.button("Analyze Nutrition"):
+            st.session_state.data_rows.clear()
+            for food in food_items.splitlines():
+                if food.strip():
+                    nutri_data = get_nutrition_data(food)
+                    if nutri_data:
+                        st.session_state.data_rows.append(nutri_data)
 
-            # Donut chart
-            import numpy as np
-            
-            labels = ["Protein", "Carbs", "Fat"]
-            values = [totals["Protein"], totals["Carbs"], totals["Fat"]]
-            colors = ["#6A5ACD", "#20B2AA", "#FF8C00"]
-            
-            fig, ax = plt.subplots(figsize=(5, 5))
-            wedges, texts, autotexts = ax.pie(
-                values,
-                labels=labels,
-                autopct="%1.1f%%",
-                startangle=90,
-                wedgeprops={"width": 0.4},
-                colors=colors,
-                textprops={"fontsize": 12})
-            
-            centre_circle = plt.Circle((0, 0), 0.70, fc="white")
-            fig.gca().add_artist(centre_circle)
-            
-            ax.axis("equal")
-            plt.title("Macronutrient Breakdown", fontsize=16)
-            st.pyplot(fig)
+    if st.session_state.data_rows:
+        result_df = pd.DataFrame(st.session_state.data_rows)
+        st.dataframe(result_df)
+        totals = result_df[["Calories", "Protein (g)", "Carbs (g)", "Fat (g)", "Sodium (mg)"]].sum()
+        st.metric("Total Calories", f"{totals['Calories']:.0f} kcal")
 
-        else:
-            st.warning("No valid entries found.")
+        donut_data = pd.DataFrame({
+            'Nutrient': ['Protein', 'Carbs', 'Fat'],
+            'Grams': [totals["Protein (g)"], totals["Carbs (g)"], totals["Fat (g)"]]
+        })
 
-# --- PAGE 2: MEAL PLANNER ---
-elif page == "Meal Planner":
-    st.title("🍽️ Smart Metadata Meal Planner")
-    filters = st.multiselect("Filters", ["vegetarian", "high protein", "dairy free"])
-    days = st.slider("Days to plan", 1, 7, 3)
+        donut_chart = alt.Chart(donut_data).mark_arc(innerRadius=50).encode(
+            theta="Grams",
+            color="Nutrient",
+            tooltip=["Nutrient", "Grams"]
+        ).properties(width=350, height=350)
 
-    st.session_state.meal_plan = []
-    st.session_state.grocery_list = []
+        st.altair_chart(donut_chart)
 
-    if st.button("Generate Plan"):
-        for d in range(days):
-            for meal_type in ["Breakfast", "Lunch", "Dinner"]:
-                portion = 0.3 if meal_type == "Breakfast" else 0.4 if meal_type == "Lunch" else 0.3
-                target = cal_goal * portion
+# --- PAGE: MEAL PLANNER ---
+elif selection == "Meal Planner":
+    st.title("🍽️ Personalized Meal Planner")
 
-                candidates = [m for m in meal_bank if m["Type"] == meal_type and
-                              all(f in m["Tags"] for f in filters) and
-                              0.8 * target <= m["Calories"] <= 1.2 * target]
-                if not candidates:
-                    candidates = [m for m in meal_bank if m["Type"] == meal_type]
-
-                selected = random.choice(candidates)
-                st.session_state.meal_plan.append({
-                    "Day": f"Day {d+1}",
-                    "Meal": meal_type,
-                    "Food": selected["Meal"],
-                    "Calories": selected["Calories"],
-                    "Protein": selected["Protein"],
-                    "Carbs": selected["Carbs"],
-                    "Fat": selected["Fat"]
-                })
-                st.session_state.grocery_list.append(selected["Meal"])
-
-    if st.session_state.meal_plan:
-        df = pd.DataFrame(st.session_state.meal_plan)
-        st.dataframe(df)
-        st.download_button("📥 Download Plan", df.to_csv(index=False).encode(), file_name="meal_plan.csv")
-
-# --- PAGE 3: GROCERY LIST ---
-elif page == "Grocery List":
-    st.title("🛒 Grocery List")
-    if st.session_state.grocery_list:
-        items = sorted(set([i.split()[0].capitalize() for i in st.session_state.grocery_list]))
-        for i in items:
-            st.markdown(f"- [ ] {i}")
+    if not st.session_state.age:
+        st.warning("Go to the Nutrition Analyzer page to enter your profile first.")
     else:
-        st.info("Run the meal planner first.")
+        calorie_goal = estimate_calories(
+            st.session_state.goal,
+            calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age),
+            st.session_state.activity
+        )
+
+        st.markdown(f"### 🌟 Daily Calorie Goal: `{int(calorie_goal)} kcal`")
+        st.markdown("---")
+
+        st.subheader("🎲 Click below to generate a fresh meal plan!")
+
+        if st.button("Generate My Plan"):
+            breakfast_pool = [
+                ("Oatmeal with berries", "https://www.allrecipes.com/recipe/244251/easy-oatmeal-with-banana-and-peanut-butter/"),
+                ("Greek yogurt & honey", "https://www.allrecipes.com/recipe/223180/honey-greek-yogurt/"),
+                ("Spinach mushroom omelette", "https://www.allrecipes.com/recipe/23640/mushroom-omelet/"),
+                ("Peanut butter toast & banana", "https://www.eatingwell.com/recipe/252652/peanut-butter-banana-toast/"),
+                ("Protein smoothie with almond milk", "https://www.allrecipes.com/recipe/232028/banana-protein-smoothie/")
+            ]
+            lunch_pool = [
+                ("Quinoa bowl with roasted veggies", "https://www.loveandlemons.com/roasted-veggie-quinoa-bowl/"),
+                ("Grilled chicken wrap", "https://www.allrecipes.com/recipe/218634/grilled-chicken-wraps/"),
+                ("Tofu poke bowl", "https://www.allrecipes.com/recipe/270351/tofu-poke-bowl/"),
+                ("Turkey sandwich & side salad", "https://www.allrecipes.com/recipe/240820/healthy-turkey-sandwich/"),
+                ("Lentil soup with avocado toast", "https://www.allrecipes.com/recipe/26692/lentil-soup/"),
+            ]
+            dinner_pool = [
+                ("Salmon & asparagus", "https://www.allrecipes.com/recipe/240708/baked-salmon-asparagus-foil-packets/"),
+                ("Tofu veggie stir-fry", "https://www.loveandlemons.com/tofu-stir-fry/"),
+                ("Zucchini noodles with chicken", "https://www.eatingwell.com/recipe/268709/zucchini-noodles-with-chicken-tomatoes-avocado-pesto/"),
+                ("Steak & sweet potato", "https://www.eatingwell.com/recipe/250660/grilled-steak-sweet-potatoes-with-orange-avocado-salsa/"),
+                ("Shrimp & brown rice bowl", "https://www.allrecipes.com/recipe/273275/garlic-shrimp-stir-fry/")
+            ]
+
+            breakfast = random.choice(breakfast_pool)
+            lunch = random.choice(lunch_pool)
+            dinner = random.choice(dinner_pool)
+
+            st.markdown("### 🥣 Breakfast")
+            st.markdown(f"**[{breakfast[0]}]({breakfast[1]})**")
+
+            st.markdown("### 🥪 Lunch")
+            st.markdown(f"**[{lunch[0]}]({lunch[1]})**")
+
+            st.markdown("### 🍲 Dinner")
+            st.markdown(f"**[{dinner[0]}]({dinner[1]})**")
+
+        st.markdown("---")
+        st.caption("Randomized daily meals powered by curated healthy recipes ✨")
+
+# --- PAGE: MENU SCANNER ---
+elif selection == "Menu Scanner":
+    st.title("📷 Menu Scanner")
+    uploaded_file = st.file_uploader("Upload a menu screenshot (.jpg, .png) or text file", type=["txt", "png", "jpg", "jpeg"])
+
+    menu_lines = []
+    if uploaded_file:
+        if uploaded_file.name.endswith(".txt"):
+            raw_text = uploaded_file.read().decode("utf-8")
+            st.text_area("Scanned Menu Text", value=raw_text, height=200)
+            menu_lines = raw_text.splitlines()
+        else:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Menu", use_column_width=True)
+            st.info("🧠 OCR not enabled in this version, please use .txt upload for now.")
+
+    dish_lines = [line.strip() for line in menu_lines if len(line.strip()) > 3]
+    if dish_lines:
+        suggestions = []
+        for line in dish_lines:
+            nutri = get_nutrition_data(line)
+            if nutri and nutri['Calories'] <= estimate_calories(st.session_state.goal, calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age), st.session_state.activity) * 0.4:
+                suggestions.append(nutri['Food'])
+
+        if suggestions:
+            st.subheader("✅ Healthier Dish Suggestions")
+            for s in suggestions:
+                st.markdown(f"- {s}")
+        else:
+            st.info("No suitable dishes found. Try uploading a clearer text menu.")
