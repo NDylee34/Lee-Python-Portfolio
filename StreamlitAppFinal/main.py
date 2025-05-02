@@ -6,6 +6,7 @@ import random
 from datetime import datetime
 from PIL import Image
 import streamlit.components.v1 as components
+from streamlit.runtime.scriptrunner import rerun  # ✅ NEW rerun method
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="🌿 ThriveHub: Your Personal Wellness Companion", layout="wide")
@@ -41,11 +42,6 @@ if st.session_state.selected_tab == "🏠 Home":
     st.markdown("<h3 style='text-align: center;'>Your Personal Wellness Companion</h3>", unsafe_allow_html=True)
     st.markdown("---")
 
-    st.markdown(
-        "<h2 style='text-align: center; color: #555;'>✨ Breathe. Reflect. Thrive. ✨</h2>",
-        unsafe_allow_html=True
-    )
-
     st.markdown("### 👋 Welcome!")
     st.write("ThriveHub helps you track your nutrition, check in with your mood, move your body, and reflect on your lifestyle. Let’s thrive together — one mindful day at a time.")
 
@@ -55,23 +51,23 @@ if st.session_state.selected_tab == "🏠 Home":
         if st.button("🥗 Nutrition"):
             st.session_state.selected_tab = "🏋️ Nutrition"
             st.session_state._triggered_by_home_button = True
-            st.experimental_rerun()
+            rerun()
     with col2:
         if st.button("🧘 Mood & Mind"):
             st.session_state.selected_tab = "🧘 Mood & Mind"
             st.session_state._triggered_by_home_button = True
-            st.experimental_rerun()
+            rerun()
     col3, col4 = st.columns(2)
     with col3:
         if st.button("🚶 Fitness Boost"):
             st.session_state.selected_tab = "🚶 Fitness Boost"
             st.session_state._triggered_by_home_button = True
-            st.experimental_rerun()
+            rerun()
     with col4:
         if st.button("📈 Lifestyle Tracker"):
             st.session_state.selected_tab = "📈 Lifestyle Tracker"
             st.session_state._triggered_by_home_button = True
-            st.experimental_rerun()
+            rerun()
 
 # --- FUNCTIONS ---
 def calculate_bmr(gender, weight, height, age):
