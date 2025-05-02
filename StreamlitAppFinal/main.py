@@ -53,6 +53,41 @@ def get_nutrition_data(food):
 tabs = ["🍽️ Nutrition", "🧘 Mood & Mind", "🏋️ Fitness Boost", "📈 Lifestyle Tracker"]
 selection = st.sidebar.radio("Navigate ThriveHub:", tabs)
 
+# --- HOME TAB ---
+if selection == "🏠 Home":
+    st.markdown("<h1 style='text-align: center;'>🌿 ThriveHub</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>Your Personal Wellness Companion</h3>", unsafe_allow_html=True)
+    st.markdown("---")
+
+    st.image("https://images.unsplash.com/photo-1571019613914-85f342c41a6c?auto=format&fit=crop&w=1650&q=80", use_column_width=True)
+
+    st.markdown("### 👋 Welcome!")
+    st.write(
+        "ThriveHub is designed to support your physical and mental wellness. "
+        "Whether you're tracking your nutrition, checking in with your mood, planning a workout, or just setting weekly goals — you're in the right place."
+    )
+
+    st.markdown("### 🧭 Where would you like to start?")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🥗 Go to Nutrition"):
+            st.session_state["selected_tab"] = "🏋️ Nutrition"
+    with col2:
+        if st.button("🧠 Go to Mood & Mind"):
+            st.session_state["selected_tab"] = "🧘 Mood & Mind"
+
+    col3, col4 = st.columns(2)
+    with col3:
+        if st.button("💪 Go to Fitness"):
+            st.session_state["selected_tab"] = "🚶 Fitness Boost"
+    with col4:
+        if st.button("📊 Go to Lifestyle Tracker"):
+            st.session_state["selected_tab"] = "📈 Lifestyle Tracker"
+
+    # Redirect if button pressed
+    if "selected_tab" in st.session_state and st.session_state["selected_tab"] != "🏠 Home":
+        st.experimental_rerun()
+
 # --- TAB 1: NUTRITION ---
 if selection == "🍽️ Nutrition":
     st.title("🍎 Nutrition Tracker")
