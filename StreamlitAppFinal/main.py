@@ -50,8 +50,12 @@ def get_nutrition_data(food):
         return None
 
 # --- SIDEBAR NAVIGATION ---
-tabs = ["🍽️ Nutrition", "🧘 Mood & Mind", "🏋️ Fitness Boost", "📈 Lifestyle Tracker"]
-selection = st.sidebar.radio("Navigate ThriveHub:", tabs)
+tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
+if "selected_tab" not in st.session_state:
+    st.session_state["selected_tab"] = "🏠 Home"
+
+selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state["selected_tab"]))
+st.session_state["selected_tab"] = selection
 
 # --- HOME TAB ---
 if selection == "🏠 Home":
