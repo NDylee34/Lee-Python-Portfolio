@@ -1,13 +1,24 @@
 import streamlit as st
 import pandas as pd
+import requests
 import random
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-# --- Configure the app layout ---
-st.set_page_config(page_title="NutriCompare", layout="wide")
+# --- CONFIGURE PAGE ---
+st.set_page_config(page_title="🥗 NutriCompare: Smart Meal & Nutrition Analyzer", layout="wide")
 
-# --- Session State Defaults ---
+# --- NUTRITIONIX API (for Nutrition Analyzer only) ---
+NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
+NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
+NUTRITIONIX_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
+HEADERS = {
+    "x-app-id": NUTRITIONIX_APP_ID,
+    "x-app-key": NUTRITIONIX_API_KEY,
+    "Content-Type": "application/json"
+}
+
+# --- SESSION STATE INIT ---
 def init_state():
     defaults = {
         "gender": "Female",
@@ -17,16 +28,15 @@ def init_state():
         "goal": "Maintenance",
         "activity": "Moderate",
         "meal_plan": [],
-        "grocery_list": [],
-        "nutrition_log": []
+        "grocery_list": []
     }
-    for key, val in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = val
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
 init_state()
 
-# --- BMR and Calorie Goal ---
+# --- CALCULATIONS ---
 def calculate_bmr(g, w, h, a):
     return 10 * w + 6.25 * h - 5 * a + (5 if g == "Male" else -161)
 
@@ -35,7 +45,7 @@ def estimate_calories(goal, bmr, activity):
     base = bmr * factor
     return base + (300 if goal == "Muscle Gain" else -500 if goal == "Weight Loss" else 0)
 
-# --- Local Meal Bank ---
+# --- LOCAL MEAL BANK ---
 meal_bank = [
     {"Meal": "Oatmeal with Berries", "Type": "Breakfast", "Calories": 350, "Protein": 12, "Carbs": 45, "Fat": 10, "Tags": ["vegetarian"]},
     {"Meal": "Greek Yogurt Parfait", "Type": "Breakfast", "Calories": 300, "Protein": 18, "Carbs": 25, "Fat": 8, "Tags": ["high protein"]},
@@ -48,11 +58,11 @@ meal_bank = [
     {"Meal": "Chicken Fajita Bowl", "Type": "Dinner", "Calories": 550, "Protein": 36, "Carbs": 45, "Fat": 22, "Tags": []},
 ]
 
-# --- Sidebar Navigation ---
+# --- PAGE NAVIGATION ---
 pages = ["Nutrition Analyzer", "Meal Planner", "Grocery List"]
 page = st.sidebar.radio("📂 Navigate", pages)
 
-# --- Sidebar User Profile ---
+# --- SIDEBAR PROFILE ---
 with st.sidebar:
     st.subheader("👤 Your Profile")
     st.session_state.gender = st.selectbox("Gender", ["Male", "Female"], index=["Male", "Female"].index(st.session_state.gender))
@@ -70,19 +80,28 @@ if page == "Nutrition Analyzer":
     st.title("📊 Nutrition Analyzer")
     st.metric("🎯 Estimated Calorie Target", f"{cal_goal} kcal")
 
-    st.subheader("🔍 Manually Enter Meals")
-    foods = st.text_area("Enter foods eaten (one per line):")
-    if st.button("Analyze Meals"):
-        entries = []
-        for line in foods.splitlines():
-            matches = [m for m in meal_bank if m["Meal"].lower() in line.lower()]
-            if matches:
-                entries.append(matches[0])
-        if entries:
-            df = pd.DataFrame(entries)
-            st.dataframe(df[["Meal", "Calories", "Protein", "Carbs", "Fat"]])
-            totals = df[["Calories", "Protein", "Carbs", "Fat"]].sum()
-            st.write("### 🧾 Daily Summary")
+    st.subheader("🔍 Enter What You Ate")
+    foods = st.text_area("Describe your meals (one item per line)")
+
+    if st.button("Analyze Nutrition"):
+        rows = []
+        for food in foods.splitlines():
+            if food.strip():
+                res = requests.post(NUTRITIONIX_URL, headers=HEADERS, json={"query": food})
+                if res.status_code == 200:
+                    data = res.json()["foods"][0]
+                    rows.append({
+                        "Food": data["food_name"].title(),
+                        "Calories": data["nf_calories"],
+                        "Protein": data["nf_protein"],
+                        "Carbs": data["nf_total_carbohydrate"],
+                        "Fat": data["nf_total_fat"]
+                    })
+        if rows:
+            df = pd.DataFrame(rows)
+            st.dataframe(df)
+            totals = df.drop(columns="Food").sum()
+            st.write("### Summary")
             st.json(totals.to_dict())
 
             # Donut chart
@@ -93,18 +112,18 @@ if page == "Nutrition Analyzer":
                    startangle=90, wedgeprops={"width": 0.3})
             st.pyplot(fig)
         else:
-            st.warning("No matching meals found in database.")
+            st.warning("No valid entries found.")
 
 # --- PAGE 2: MEAL PLANNER ---
 elif page == "Meal Planner":
-    st.title("🧠 Goal-Aligned Meal Planner")
-    filters = st.multiselect("Apply Dietary Filters (optional)", ["vegetarian", "high protein", "low carb", "dairy free"])
-    days = st.slider("Plan for how many days?", 1, 7, 3)
+    st.title("🍽️ Smart Metadata Meal Planner")
+    filters = st.multiselect("Filters", ["vegetarian", "high protein", "dairy free"])
+    days = st.slider("Days to plan", 1, 7, 3)
 
     st.session_state.meal_plan = []
     st.session_state.grocery_list = []
 
-    if st.button("🌀 Generate Meal Plan"):
+    if st.button("Generate Plan"):
         for d in range(days):
             for meal_type in ["Breakfast", "Lunch", "Dinner"]:
                 portion = 0.3 if meal_type == "Breakfast" else 0.4 if meal_type == "Lunch" else 0.3
@@ -131,14 +150,14 @@ elif page == "Meal Planner":
     if st.session_state.meal_plan:
         df = pd.DataFrame(st.session_state.meal_plan)
         st.dataframe(df)
-        st.download_button("📥 Download Plan", df.to_csv(index=False).encode(), "meal_plan.csv")
+        st.download_button("📥 Download Plan", df.to_csv(index=False).encode(), file_name="meal_plan.csv")
 
 # --- PAGE 3: GROCERY LIST ---
 elif page == "Grocery List":
-    st.title("🛒 Grocery List Generator")
+    st.title("🛒 Grocery List")
     if st.session_state.grocery_list:
-        items = sorted(set(i.split()[0] for i in st.session_state.grocery_list))
+        items = sorted(set([i.split()[0].capitalize() for i in st.session_state.grocery_list]))
         for i in items:
             st.markdown(f"- [ ] {i}")
     else:
-        st.info("No plan yet — generate one from the Meal Planner page.")
+        st.info("Run the meal planner first.")
