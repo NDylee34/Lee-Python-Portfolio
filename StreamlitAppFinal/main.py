@@ -6,7 +6,6 @@ import random
 from datetime import datetime
 from PIL import Image
 import streamlit.components.v1 as components
-from streamlit.runtime.scriptrunner import rerun  # ✅ NEW rerun method
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="🌿 ThriveHub: Your Personal Wellness Companion", layout="wide")
@@ -22,7 +21,7 @@ HEADERS = {
 }
 
 # --- SESSION STATE DEFAULTS ---
-for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log", "selected_tab", "_triggered_by_home_button"]:
+for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log", "selected_tab"]:
     if key not in st.session_state:
         st.session_state[key] = None if key not in ["data_rows", "mood_log", "activity_log"] else []
 
@@ -32,9 +31,7 @@ if st.session_state.selected_tab is None:
 # --- NAVIGATION ---
 tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
 selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
-
-if selection != st.session_state.selected_tab and not st.session_state.get("_triggered_by_home_button", False):
-    st.session_state.selected_tab = selection
+st.session_state.selected_tab = selection
 
 # --- HOME PAGE ---
 if st.session_state.selected_tab == "🏠 Home":
@@ -50,24 +47,16 @@ if st.session_state.selected_tab == "🏠 Home":
     with col1:
         if st.button("🥗 Nutrition"):
             st.session_state.selected_tab = "🏋️ Nutrition"
-            st.session_state._triggered_by_home_button = True
-            rerun()
     with col2:
         if st.button("🧘 Mood & Mind"):
             st.session_state.selected_tab = "🧘 Mood & Mind"
-            st.session_state._triggered_by_home_button = True
-            rerun()
     col3, col4 = st.columns(2)
     with col3:
         if st.button("🚶 Fitness Boost"):
             st.session_state.selected_tab = "🚶 Fitness Boost"
-            st.session_state._triggered_by_home_button = True
-            rerun()
     with col4:
         if st.button("📈 Lifestyle Tracker"):
             st.session_state.selected_tab = "📈 Lifestyle Tracker"
-            st.session_state._triggered_by_home_button = True
-            rerun()
 
 # --- FUNCTIONS ---
 def calculate_bmr(gender, weight, height, age):
@@ -163,16 +152,14 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
     st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
 
     st.markdown("### 🎧 Curated Playlist for You")
-
     playlist_embeds = {
-        "Happy": "37i9dQZF1DXdPec7aLTmlC",         # Feel Good Hits
-        "Energetic": "37i9dQZF1DWUVpAXiEPK8P",      # Beast Mode
-        "Tired": "37i9dQZF1DX0SM0LYsmbMT",          # Acoustic Morning
-        "Stressed": "37i9dQZF1DX6tGOWKH2f3j",       # Stress Relief
-        "Anxious": "37i9dQZF1DX4sWSpwq3LiO",        # Peaceful Piano
-        "Motivated": "37i9dQZF1DX70RN3TfWWJh",      # Power Workout
+        "Happy": "37i9dQZF1DXdPec7aLTmlC",
+        "Energetic": "37i9dQZF1DWUVpAXiEPK8P",
+        "Tired": "37i9dQZF1DX0SM0LYsmbMT",
+        "Stressed": "37i9dQZF1DX6tGOWKH2f3j",
+        "Anxious": "37i9dQZF1DX4sWSpwq3LiO",
+        "Motivated": "37i9dQZF1DX70RN3TfWWJh",
     }
-
     embed_url = f"https://open.spotify.com/embed/playlist/{playlist_embeds[mood]}"
     components.iframe(embed_url, height=80, width=700)
 
@@ -185,13 +172,11 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
         "Anxious": "“You don’t have to control your thoughts. You just have to stop letting them control you.” – Dan Millman",
         "Motivated": "“Don’t watch the clock; do what it does. Keep going.” – Sam Levenson"
     }
-
     st.success(quotes[mood])
 
 # --- FITNESS BOOST PAGE ---
 elif st.session_state.selected_tab == "🚶 Fitness Boost":
     st.title("💪 Fitness Boost")
-
     energy = st.slider("How much energy do you have right now?", 0, 100, 50)
     if energy > 70:
         st.markdown("🏃 Try a **30-min HIIT** session or an outdoor **run**")
@@ -199,7 +184,6 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         st.markdown("🧘 Try **yoga** or **20-min strength training**")
     else:
         st.markdown("🚶 Go for a **short walk** or light **stretching**")
-
     if st.button("Log today’s activity"):
         st.session_state.activity_log.append({"date": datetime.now().date(), "energy": energy})
         st.success("Activity logged!")
@@ -207,14 +191,11 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
 # --- LIFESTYLE TRACKER PAGE ---
 elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     st.title("📊 Lifestyle Tracker")
-
     st.subheader("📅 Mood Over Time")
     if st.session_state.mood_log:
         mood_df = pd.DataFrame(st.session_state.mood_log)
         mood_chart = alt.Chart(mood_df).mark_line(point=True).encode(
-            x="time:T",
-            y="energy:Q",
-            tooltip=["mood", "energy", "time"]
+            x="time:T", y="energy:Q", tooltip=["mood", "energy", "time"]
         ).properties(height=300)
         st.altair_chart(mood_chart)
     else:
@@ -224,8 +205,7 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     if st.session_state.activity_log:
         activity_df = pd.DataFrame(st.session_state.activity_log)
         activity_chart = alt.Chart(activity_df).mark_bar().encode(
-            x="date:T",
-            y="energy:Q"
+            x="date:T", y="energy:Q"
         ).properties(height=200)
         st.altair_chart(activity_chart)
     else:
