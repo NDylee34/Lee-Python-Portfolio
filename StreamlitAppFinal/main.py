@@ -21,7 +21,7 @@ HEADERS = {
 }
 
 # --- SESSION STATE DEFAULTS ---
-for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log", "selected_tab"]:
+for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log", "selected_tab", "_triggered_by_home_button"]:
     if key not in st.session_state:
         st.session_state[key] = None if key not in ["data_rows", "mood_log", "activity_log"] else []
 
@@ -32,15 +32,19 @@ if st.session_state.selected_tab is None:
 tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
 selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
 
-if selection != st.session_state.selected_tab:
+if selection != st.session_state.selected_tab and not st.session_state.get("_triggered_by_home_button", False):
     st.session_state.selected_tab = selection
-    st.experimental_rerun()
 
 # --- HOME PAGE ---
 if st.session_state.selected_tab == "🏠 Home":
     st.markdown("<h1 style='text-align: center;'>🌿 ThriveHub</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center;'>Your Personal Wellness Companion</h3>", unsafe_allow_html=True)
     st.markdown("---")
+
+    st.markdown(
+        "<h2 style='text-align: center; color: #555;'>✨ Breathe. Reflect. Thrive. ✨</h2>",
+        unsafe_allow_html=True
+    )
 
     st.markdown("### 👋 Welcome!")
     st.write("ThriveHub helps you track your nutrition, check in with your mood, move your body, and reflect on your lifestyle. Let’s thrive together — one mindful day at a time.")
@@ -50,19 +54,23 @@ if st.session_state.selected_tab == "🏠 Home":
     with col1:
         if st.button("🥗 Nutrition"):
             st.session_state.selected_tab = "🏋️ Nutrition"
+            st.session_state._triggered_by_home_button = True
             st.experimental_rerun()
     with col2:
         if st.button("🧘 Mood & Mind"):
             st.session_state.selected_tab = "🧘 Mood & Mind"
+            st.session_state._triggered_by_home_button = True
             st.experimental_rerun()
     col3, col4 = st.columns(2)
     with col3:
         if st.button("🚶 Fitness Boost"):
             st.session_state.selected_tab = "🚶 Fitness Boost"
+            st.session_state._triggered_by_home_button = True
             st.experimental_rerun()
     with col4:
         if st.button("📈 Lifestyle Tracker"):
             st.session_state.selected_tab = "📈 Lifestyle Tracker"
+            st.session_state._triggered_by_home_button = True
             st.experimental_rerun()
 
 # --- FUNCTIONS ---
