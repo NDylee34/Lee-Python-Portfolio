@@ -3,15 +3,15 @@ import pandas as pd
 import requests
 import altair as alt
 import random
+from datetime import datetime
 from PIL import Image
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="🥗 NutriCompare: Smart Meal & Nutrition Analyzer", layout="wide")
+st.set_page_config(page_title="🌿 ThriveHub: Your Personal Wellness Companion", layout="wide")
 
 # --- SECRETS ---
 NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
 NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
-
 API_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
 HEADERS = {
     "x-app-id": NUTRITIONIX_APP_ID,
@@ -20,9 +20,9 @@ HEADERS = {
 }
 
 # --- SESSION STATE DEFAULTS ---
-for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"]:
+for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log"]:
     if key not in st.session_state:
-        st.session_state[key] = None if key != "data_rows" else []
+        st.session_state[key] = None if key not in ["data_rows", "mood_log", "activity_log"] else []
 
 # --- FUNCTIONS ---
 def calculate_bmr(gender, weight, height, age):
@@ -49,13 +49,14 @@ def get_nutrition_data(food):
         st.error(f"API error: {response.status_code}")
         return None
 
-# --- PAGE NAVIGATION ---
-pages = ["Nutrition Analyzer", "Meal Planner", "Menu Scanner"]
-selection = st.sidebar.radio("Navigation", pages)
+# --- SIDEBAR NAVIGATION ---
+tabs = ["🍽️ Nutrition", "🧘 Mood & Mind", "🏋️ Fitness Boost", "📈 Lifestyle Tracker"]
+selection = st.sidebar.radio("Navigate ThriveHub:", tabs)
 
-# --- PAGE 1: NUTRITION ANALYZER ---
-if selection == "Nutrition Analyzer":
-    st.title("🥗 Nutrition Analyzer")
+# --- TAB 1: NUTRITION ---
+if selection == "🍽️ Nutrition":
+    st.title("🍎 Nutrition Tracker")
+
     with st.sidebar:
         st.subheader("👤 Your Profile")
         st.session_state.gender = st.selectbox("Gender", ["Male", "Female"])
@@ -67,7 +68,7 @@ if selection == "Nutrition Analyzer":
 
     bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
     calorie_goal = estimate_calories(st.session_state.goal, bmr, st.session_state.activity)
-    st.sidebar.metric("Estimated Daily Calorie Goal", f"{int(calorie_goal)} kcal")
+    st.sidebar.metric("🎯 Daily Calorie Goal", f"{int(calorie_goal)} kcal")
 
     input_method = st.radio("Choose Input Method:", ["Upload CSV", "Manual Entry"])
 
@@ -112,116 +113,72 @@ if selection == "Nutrition Analyzer":
 
         st.altair_chart(donut_chart)
 
-# --- PAGE 2: MEAL PLANNER ---
-elif selection == "Meal Planner":
-    st.title("🍽️ Personalized Meal Planner")
+# --- TAB 2: MOOD & MIND ---
+elif selection == "🧘 Mood & Mind":
+    st.title("🧠 Mood & Mind")
 
-    if not st.session_state.age:
-        st.warning("Please complete your profile on the Nutrition Analyzer page.")
+    mood = st.selectbox("How are you feeling?", ["Happy", "Stressed", "Tired", "Energetic", "Anxious", "Motivated"])
+    energy = st.slider("Your energy level:", 0, 100, 50)
+
+    st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
+
+    if mood in ["Happy", "Energetic"]:
+        st.markdown("🎧 [Feel Good Hits](https://open.spotify.com/playlist/37i9dQZF1DXdPec7aLTmlC)")
+    elif mood in ["Tired", "Stressed"]:
+        st.markdown("🎧 [Chill Vibes](https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO)")
     else:
-        calorie_goal = estimate_calories(
-            st.session_state.goal,
-            calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age),
-            st.session_state.activity
-        )
-        st.markdown(f"### 🌟 Daily Calorie Goal: `{int(calorie_goal)} kcal`")
-        st.markdown("---")
+        st.markdown("🎧 [Motivation Mix](https://open.spotify.com/playlist/37i9dQZF1DX3rxVfibe1L0)")
 
-        dietary_pref = st.multiselect("🍽️ Select preferences (optional):", ["Vegetarian", "High Protein", "Low Carb"])
+    quotes = {
+        "Happy": "“Happiness is not something ready made. It comes from your own actions.” – Dalai Lama",
+        "Stressed": "“Almost everything will work again if you unplug it for a few minutes, including you.” – Anne Lamott",
+        "Tired": "“Rest and self-care are so important. When you take time to replenish your spirit, it allows you to serve others.” – Eleanor Brown",
+        "Energetic": "“Energy and persistence conquer all things.” – Benjamin Franklin",
+        "Anxious": "“You don’t have to control your thoughts. You just have to stop letting them control you.” – Dan Millman",
+        "Motivated": "“Don’t watch the clock; do what it does. Keep going.” – Sam Levenson"
+    }
 
-        st.subheader("🎲 Click to generate a smart meal plan!")
+    st.success(quotes[mood])
 
-        if st.button("Generate My Plan"):
-            # Expanded meal pool
-            breakfast_pool = [
-                {"meal": "Oatmeal with fruit", "calories": 300, "tags": ["Vegetarian"]},
-                {"meal": "Greek yogurt with granola", "calories": 400, "tags": ["Vegetarian", "High Protein"]},
-                {"meal": "Scrambled eggs with toast", "calories": 350, "tags": ["High Protein"]},
-                {"meal": "Smoothie with protein powder", "calories": 500, "tags": ["Vegetarian", "High Protein", "Low Carb"]},
-                {"meal": "Avocado toast", "calories": 320, "tags": ["Vegetarian", "Low Carb"]},
-                {"meal": "Protein pancakes", "calories": 430, "tags": ["Vegetarian", "High Protein"]},
-                {"meal": "Egg muffins with spinach", "calories": 310, "tags": ["Low Carb", "High Protein"]},
-                {"meal": "Banana chia pudding", "calories": 340, "tags": ["Vegetarian", "Low Carb"]},
-                {"meal": "Tofu breakfast scramble", "calories": 370, "tags": ["Vegetarian", "High Protein"]},
-                {"meal": "Apple almond butter toast", "calories": 380, "tags": ["Vegetarian"]},
-            ]
-            lunch_pool = [
-                {"meal": "Grilled chicken salad", "calories": 500, "tags": ["Low Carb", "High Protein"]},
-                {"meal": "Veggie wrap", "calories": 450, "tags": ["Vegetarian"]},
-                {"meal": "Quinoa and black bean bowl", "calories": 550, "tags": ["Vegetarian", "High Protein"]},
-                {"meal": "Turkey sandwich", "calories": 480, "tags": ["High Protein"]},
-                {"meal": "Tofu stir-fry", "calories": 520, "tags": ["Vegetarian", "Low Carb"]},
-                {"meal": "Shrimp and avocado salad", "calories": 510, "tags": ["Low Carb", "High Protein"]},
-                {"meal": "Lentil soup", "calories": 490, "tags": ["Vegetarian"]},
-                {"meal": "Grilled halloumi and veggies", "calories": 530, "tags": ["Vegetarian", "High Protein"]},
-                {"meal": "Chicken quinoa power bowl", "calories": 560, "tags": ["High Protein"]},
-                {"meal": "Falafel and tabbouleh plate", "calories": 540, "tags": ["Vegetarian"]},
-            ]
-            dinner_pool = [
-                {"meal": "Baked salmon with broccoli", "calories": 600, "tags": ["Low Carb", "High Protein"]},
-                {"meal": "Lentil stew", "calories": 550, "tags": ["Vegetarian"]},
-                {"meal": "Zucchini noodles with chicken", "calories": 530, "tags": ["Low Carb", "High Protein"]},
-                {"meal": "Beef stir-fry", "calories": 580, "tags": ["High Protein", "Low Carb"]},
-                {"meal": "Chickpea curry", "calories": 540, "tags": ["Vegetarian"]},
-                {"meal": "Stuffed bell peppers", "calories": 560, "tags": ["Vegetarian", "Low Carb"]},
-                {"meal": "Grilled tofu with miso glaze", "calories": 500, "tags": ["Vegetarian", "High Protein"]},
-                {"meal": "Shrimp cauliflower rice bowl", "calories": 520, "tags": ["Low Carb", "High Protein"]},
-                {"meal": "Eggplant parm (light)", "calories": 540, "tags": ["Vegetarian"]},
-                {"meal": "Chicken fajita bowl", "calories": 570, "tags": ["Low Carb", "High Protein"]},
-            ]
+# --- TAB 3: FITNESS BOOST ---
+elif selection == "🏋️ Fitness Boost":
+    st.title("💪 Fitness Boost")
 
-            def filter_meals(pool, max_cal, prefs):
-                return [
-                    item["meal"] for item in pool
-                    if item["calories"] <= max_cal and (not prefs or any(tag in item["tags"] for tag in prefs))
-                ] or [item["meal"] for item in pool]
+    energy = st.slider("How much energy do you have right now?", 0, 100, 50)
+    if energy > 70:
+        st.markdown("🏃 Try a **30-min HIIT** session or an outdoor **run**")
+    elif energy > 40:
+        st.markdown("🧘 Try **yoga** or **20-min strength training**")
+    else:
+        st.markdown("🚶 Go for a **short walk** or light **stretching**")
 
-            b = random.choice(filter_meals(breakfast_pool, calorie_goal * 0.3, dietary_pref))
-            l = random.choice(filter_meals(lunch_pool, calorie_goal * 0.35, dietary_pref))
-            d = random.choice(filter_meals(dinner_pool, calorie_goal * 0.35, dietary_pref))
+    if st.button("Log today’s activity"):
+        st.session_state.activity_log.append({"date": datetime.now().date(), "energy": energy})
+        st.success("Activity logged!")
 
-            st.markdown("### 🥣 Breakfast")
-            st.markdown(f"- {b}")
-            st.markdown("### 🥪 Lunch")
-            st.markdown(f"- {l}")
-            st.markdown("### 🍲 Dinner")
-            st.markdown(f"- {d}")
+# --- TAB 4: LIFESTYLE TRACKER ---
+elif selection == "📈 Lifestyle Tracker":
+    st.title("📊 Lifestyle Tracker")
 
-        st.markdown("---")
-        st.caption("Meals vary daily based on your preferences and nutrition goals 🎯")
+    st.subheader("📅 Mood Over Time")
+    if st.session_state.mood_log:
+        mood_df = pd.DataFrame(st.session_state.mood_log)
+        mood_chart = alt.Chart(mood_df).mark_line(point=True).encode(
+            x="time:T",
+            y="energy:Q",
+            tooltip=["mood", "energy", "time"]
+        ).properties(height=300)
+        st.altair_chart(mood_chart)
+    else:
+        st.info("No mood data yet.")
 
-# --- PAGE 3: MENU SCANNER ---
-elif selection == "Menu Scanner":
-    st.title("📷 Menu Scanner")
-    uploaded_file = st.file_uploader("Upload a menu screenshot (.jpg, .png) or text file", type=["txt", "png", "jpg", "jpeg"])
-
-    menu_lines = []
-    if uploaded_file:
-        if uploaded_file.name.endswith(".txt"):
-            raw_text = uploaded_file.read().decode("utf-8")
-            st.text_area("Scanned Menu Text", value=raw_text, height=200)
-            menu_lines = raw_text.splitlines()
-        else:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Menu", use_column_width=True)
-            st.info("🧠 OCR not enabled in this version, please upload a .txt file.")
-
-    dish_lines = [line.strip() for line in menu_lines if len(line.strip()) > 3]
-    if dish_lines:
-        calorie_goal = estimate_calories(
-            st.session_state.goal,
-            calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age),
-            st.session_state.activity
-        )
-        suggestions = []
-        for line in dish_lines:
-            nutri = get_nutrition_data(line)
-            if nutri and nutri['Calories'] <= calorie_goal * 0.4:
-                suggestions.append(nutri['Food'])
-
-        if suggestions:
-            st.subheader("✅ Healthier Dish Suggestions")
-            for s in suggestions:
-                st.markdown(f"- {s}")
-        else:
-            st.info("No suitable dishes found. Try uploading a cleaner or shorter menu.")
+    st.subheader("📅 Activity Log")
+    if st.session_state.activity_log:
+        activity_df = pd.DataFrame(st.session_state.activity_log)
+        activity_chart = alt.Chart(activity_df).mark_bar().encode(
+            x="date:T",
+            y="energy:Q"
+        ).properties(height=200)
+        st.altair_chart(activity_chart)
+    else:
+        st.info("No activity data yet.")
