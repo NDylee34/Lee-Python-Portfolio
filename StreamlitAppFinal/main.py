@@ -148,6 +148,10 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
 
     mood = st.selectbox("How are you feeling?", ["Happy", "Stressed", "Tired", "Energetic", "Anxious", "Motivated"])
     energy = st.slider("Your energy level:", 0, 100, 50)
+    
+    if st.button("➕ Log Energy Level"):
+        st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
+        st.success("Energy level added to your mood log!")
 
     st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
 
@@ -188,6 +192,15 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
     else:
         st.markdown("🚶 Low Energy: Go for a short walk or light stretching.")
 
+    st.markdown("### ✅ Additional Activities")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.checkbox("🧘 Stretching")
+    with col2:
+        st.checkbox("🧠 Meditation")
+    with col3:
+        st.checkbox("📓 Journaling")
+
     if st.button("📌 Log Today’s Activity"):
         st.session_state.activity_log.append({
             "date": datetime.now().date(),
@@ -197,37 +210,39 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         st.success("✅ Activity logged!")
 
     if st.session_state.activity_log:
-        st.markdown("### 📘 Recent Activity Log")
+        st.markdown("### 📜 Recent Activity Log")
         for entry in reversed(st.session_state.activity_log[-5:]):
-            st.markdown(f"**📅 {entry['date']}** — ⚡ Energy: {entry['energy']}/100")
+            st.markdown(f"**🗕️ {entry['date']}** — ⚡ Energy: {entry['energy']}/100")
 
 # --- LIFESTYLE TRACKER PAGE ---
 elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
-    st.title("📊 Lifestyle Tracker")
+    st.title("📈 Lifestyle Tracker")
     st.caption("View how your mood and energy evolve over time — powered by your own entries.")
 
     # --- Mood & Mind Section ---
-    st.subheader("🧠 Mood & Energy Log (from Mood & Mind)")
+    st.subheader("🧠 Mood & Energy Log")
     if st.session_state.mood_log:
         mood_df = pd.DataFrame(st.session_state.mood_log)
-        mood_chart = alt.Chart(mood_df).mark_line(point=True, color="#4CAF50").encode(
+        mood_chart = alt.Chart(mood_df).mark_line(point=alt.OverlayMarkDef(filled=True, size=80), color="#8BC34A").encode(
             x=alt.X("time:T", title="Date & Time"),
             y=alt.Y("energy:Q", title="Energy Level"),
             tooltip=["mood", "energy", "time"]
-        ).properties(height=300, title="Mood-Linked Energy Over Time")
-        st.altair_chart(mood_chart)
+        ).properties(height=300, title="Mood-Based Energy Over Time")
+        st.altair_chart(mood_chart, use_container_width=True)
     else:
-        st.info("No mood data logged yet. Check the 🧘 Mood & Mind tab!")
+        st.info("No mood data logged yet. Check the 🧠 Mood & Mind tab!")
 
     # --- Fitness Boost Section ---
-    st.subheader("💪 Physical Activity Log (from Fitness Boost)")
+    st.subheader("💪 Physical Activity Log")
     if st.session_state.activity_log:
         activity_df = pd.DataFrame(st.session_state.activity_log)
-        activity_chart = alt.Chart(activity_df).mark_bar(color="#2196F3").encode(
+        activity_chart = alt.Chart(activity_df).mark_area(line={"color": "#2196F3"}, color=alt.Gradient(
+            gradient='linear', stops=[alt.GradientStop(color='#BBDEFB', offset=0), alt.GradientStop(color='#2196F3', offset=1)], x1=1, x2=1, y1=1, y2=0
+        )).encode(
             x=alt.X("date:T", title="Date"),
             y=alt.Y("energy:Q", title="Energy Level"),
             tooltip=["date", "energy"]
         ).properties(height=250, title="Logged Physical Energy by Day")
-        st.altair_chart(activity_chart)
+        st.altair_chart(activity_chart, use_container_width=True)
     else:
         st.info("No fitness activity logged yet. Head over to 🚶 Fitness Boost!")
