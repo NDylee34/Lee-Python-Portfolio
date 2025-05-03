@@ -28,6 +28,16 @@ for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"
 if st.session_state.selected_tab is None:
     st.session_state.selected_tab = "🏠 Home"
 
+# --- PROFILE SIDEBAR ---
+with st.sidebar:
+    st.subheader("👤 Your Profile")
+    st.session_state.gender = st.selectbox("Gender", ["Male", "Female"], index=0 if not st.session_state.gender else ["Male", "Female"].index(st.session_state.gender))
+    st.session_state.weight = st.number_input("Weight (kg)", value=st.session_state.weight if st.session_state.weight else 65.0)
+    st.session_state.height = st.number_input("Height (cm)", value=st.session_state.height if st.session_state.height else 170.0)
+    st.session_state.age = st.slider("Age", 12, 80, value=st.session_state.age if st.session_state.age else 25)
+    st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"], index=0 if not st.session_state.goal else ["Maintenance", "Weight Loss", "Muscle Gain"].index(st.session_state.goal))
+    st.session_state.activity = st.selectbox("Activity Level", ["Sedentary", "Moderate", "Active"], index=0 if not st.session_state.activity else ["Sedentary", "Moderate", "Active"].index(st.session_state.activity))
+
 # --- NAVIGATION ---
 tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
 selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
@@ -86,14 +96,6 @@ def get_nutrition_data(food):
 # --- NUTRITION PAGE ---
 if st.session_state.selected_tab == "🏋️ Nutrition":
     st.title("🍎 Nutrition Tracker")
-    with st.sidebar:
-        st.subheader("👤 Your Profile")
-        st.session_state.gender = st.selectbox("Gender", ["Male", "Female"])
-        st.session_state.weight = st.number_input("Weight (kg)", value=65.0)
-        st.session_state.height = st.number_input("Height (cm)", value=170.0)
-        st.session_state.age = st.slider("Age", 12, 80, 25)
-        st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"])
-        st.session_state.activity = st.selectbox("Activity Level", ["Sedentary", "Moderate", "Active"])
 
     bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
     calorie_goal = estimate_calories(st.session_state.goal, bmr, st.session_state.activity)
@@ -160,7 +162,7 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
         "Tired": "37i9dQZF1DX0SM0LYsmbMT",
         "Stressed": "37i9dQZF1DWXe9gFZP0gtP",
         "Anxious": "37i9dQZF1DX4sWSpwq3LiO",
-        "Motivated": "37i9dQZF1DWZ6uXxMYl4H3",
+        "Motivated": "37i9dQZF1DXc5e2bJhV6pu",
     }
     embed_url = f"https://open.spotify.com/embed/playlist/{playlist_embeds[mood]}"
     components.iframe(embed_url, height=80, width=700)
