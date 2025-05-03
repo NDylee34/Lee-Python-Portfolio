@@ -210,15 +210,23 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         st.info(f"You need approximately **{required_minutes:.1f} minutes** of {activity_type.lower()} to burn {calories_to_burn} kcal.")
 
     if st.button("📌 Log Today’s Activity"):
-        st.session_state.activity_log.append({
-            "date": datetime.now().date(),
-            "energy": energy,
-            "time": datetime.now(),
-            "activity": activity_type,
-            "calories": calories_to_burn,
-            "duration": required_minutes
-        })
-        st.success("✅ Activity logged!")
+        if st.session_state.weight:
+            burn_rate = calories_per_kg_per_min[activity_type] * st.session_state.weight
+            duration = calories_to_burn / burn_rate
+            calories = burn_rate * duration
+
+            st.session_state.activity_log.append({
+                "date": datetime.now().date(),
+                "time": datetime.now(),
+                "energy": energy,
+                "activity": activity_type,
+                "duration": round(duration, 1),
+                "calories": round(calories, 1)
+            })
+            st.success(f"✅ Logged {activity_type.lower()} for {duration:.1f} minutes — {calories:.1f} kcal burned!")
+        else:
+            st.warning("Please enter your weight in the sidebar to calculate activity metrics.")
+
 
     if st.session_state.activity_log:
         st.markdown("### 📘 Recent Activity Log")
