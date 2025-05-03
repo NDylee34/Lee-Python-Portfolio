@@ -160,7 +160,7 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
         "Tired": "37i9dQZF1DX0SM0LYsmbMT",
         "Stressed": "37i9dQZF1DWXe9gFZP0gtP",
         "Anxious": "37i9dQZF1DX4sWSpwq3LiO",
-        "Motivated": "6o7IK7K9wanDCWTlWFWqj9",
+        "Motivated": "37i9dQZF1DWZ6uXxMYl4H3",
     }
     embed_url = f"https://open.spotify.com/embed/playlist/{playlist_embeds[mood]}"
     components.iframe(embed_url, height=80, width=700)
@@ -210,7 +210,10 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         st.session_state.activity_log.append({
             "date": datetime.now().date(),
             "energy": energy,
-            "time": datetime.now()
+            "time": datetime.now(),
+            "activity": activity_type,
+            "calories": calories_to_burn,
+            "duration": required_minutes
         })
         st.success("✅ Activity logged!")
 
