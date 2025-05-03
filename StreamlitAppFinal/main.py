@@ -156,11 +156,11 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
     st.markdown("### 🎧 Curated Playlist for You")
     playlist_embeds = {
         "Happy": "37i9dQZF1DXdPec7aLTmlC",
-        "Energetic": "37i9dQZF1DWUVpAXiEPK8P",
+        "Energetic": "37i9dQZF1DX70RN3TfWWJh",
         "Tired": "37i9dQZF1DX0SM0LYsmbMT",
         "Stressed": "37i9dQZF1DWXe9gFZP0gtP",
         "Anxious": "37i9dQZF1DX4sWSpwq3LiO",
-        "Motivated": "37i9dQZF1DX70RN3TfWWJh",
+        "Motivated": "37i9dQZF1DWZ6uXxMYl4H3",
     }
     embed_url = f"https://open.spotify.com/embed/playlist/{playlist_embeds[mood]}"
     components.iframe(embed_url, height=80, width=700)
@@ -210,7 +210,10 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         st.session_state.activity_log.append({
             "date": datetime.now().date(),
             "energy": energy,
-            "time": datetime.now()
+            "time": datetime.now(),
+            "activity": activity_type,
+            "calories": calories_to_burn,
+            "duration": required_minutes
         })
         st.success("✅ Activity logged!")
 
@@ -228,7 +231,11 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     st.subheader("🧠 Mood & Energy Log (from Mood & Mind)")
     if st.session_state.mood_log:
         mood_df = pd.DataFrame(st.session_state.mood_log)
-        mood_chart = alt.Chart(mood_df).mark_line(point=alt.OverlayMarkDef(filled=True, size=80), color="#8BC34A").encode(
+        mood_chart = alt.Chart(mood_df).mark_area(line={"color": "#8BC34A"}, color=alt.Gradient(
+            gradient='linear',
+            stops=[alt.GradientStop(color='#C8E6C9', offset=0), alt.GradientStop(color='#4CAF50', offset=1)],
+            x1=1, x2=1, y1=1, y2=0
+        )).encode(
             x=alt.X("time:T", title="Date & Time"),
             y=alt.Y("energy:Q", title="Energy Level"),
             tooltip=["mood", "energy", "time"]
@@ -255,7 +262,7 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
         ).encode(
             x=alt.X("date:T", title="Date"),
             y=alt.Y("energy:Q", title="Energy Level"),
-            tooltip=["date", "energy"]
+            tooltip=["date", "energy", "activity", "duration", "calories"]
         ).properties(height=250, title="Logged Physical Energy by Day")
         st.altair_chart(activity_chart, use_container_width=True)
     else:
