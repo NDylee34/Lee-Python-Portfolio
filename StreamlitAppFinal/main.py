@@ -28,6 +28,11 @@ for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"
 if st.session_state.selected_tab is None:
     st.session_state.selected_tab = "🏠 Home"
 
+# --- NAVIGATION ---
+tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
+selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
+st.session_state.selected_tab = selection
+
 # --- PROFILE SIDEBAR ---
 with st.sidebar:
     st.subheader("👤 Your Profile")
@@ -37,11 +42,6 @@ with st.sidebar:
     st.session_state.age = st.slider("Age", 12, 80, value=st.session_state.age if st.session_state.age else 25)
     st.session_state.goal = st.selectbox("Goal", ["Maintenance", "Weight Loss", "Muscle Gain"], index=0 if not st.session_state.goal else ["Maintenance", "Weight Loss", "Muscle Gain"].index(st.session_state.goal))
     st.session_state.activity = st.selectbox("Activity Level", ["Sedentary", "Moderate", "Active"], index=0 if not st.session_state.activity else ["Sedentary", "Moderate", "Active"].index(st.session_state.activity))
-
-# --- NAVIGATION ---
-tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
-selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
-st.session_state.selected_tab = selection
 
 # --- HOME PAGE ---
 if st.session_state.selected_tab == "🏠 Home":
