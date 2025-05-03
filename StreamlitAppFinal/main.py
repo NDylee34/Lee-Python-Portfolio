@@ -148,12 +148,10 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
 
     mood = st.selectbox("How are you feeling?", ["Happy", "Stressed", "Tired", "Energetic", "Anxious", "Motivated"])
     energy = st.slider("Your energy level:", 0, 100, 50)
-    
+
     if st.button("➕ Log Energy Level"):
         st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
         st.success("Energy level added to your mood log!")
-
-    st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
 
     st.markdown("### 🎧 Curated Playlist for You")
     playlist_embeds = {
@@ -181,7 +179,7 @@ elif st.session_state.selected_tab == "🧘 Mood & Mind":
 # --- FITNESS BOOST PAGE ---
 elif st.session_state.selected_tab == "🚶 Fitness Boost":
     st.title("💪 Fitness Boost")
-    st.caption("Get personalized movement suggestions based on your current energy level.")
+    st.caption("Get personalized movement suggestions and calorie estimates based on your energy level and activity.")
 
     energy = st.slider("⚡ How much energy do you have right now?", 0, 100, 50)
 
@@ -192,14 +190,21 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
     else:
         st.markdown("🚶 Low Energy: Go for a short walk or light stretching.")
 
-    st.markdown("### ✅ Additional Activities")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.checkbox("🧘 Stretching")
-    with col2:
-        st.checkbox("🧠 Meditation")
-    with col3:
-        st.checkbox("📓 Journaling")
+    st.markdown("### 🏃 Choose an Activity")
+    activity_type = st.selectbox("Select an activity:", ["Cycling", "30-minute Run", "Weightlifting", "Swimming", "Hiking"])
+    calories_per_kg_per_min = {
+        "Cycling": 0.14,
+        "30-minute Run": 0.17,
+        "Weightlifting": 0.09,
+        "Swimming": 0.13,
+        "Hiking": 0.12
+    }
+    calories_to_burn = st.number_input("Enter how many calories you want to burn:", min_value=50, value=200)
+
+    if st.session_state.weight:
+        burn_rate = calories_per_kg_per_min[activity_type] * st.session_state.weight
+        required_minutes = calories_to_burn / burn_rate
+        st.info(f"You need approximately **{required_minutes:.1f} minutes** of {activity_type.lower()} to burn {calories_to_burn} kcal.")
 
     if st.button("📌 Log Today’s Activity"):
         st.session_state.activity_log.append({
@@ -210,17 +215,17 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         st.success("✅ Activity logged!")
 
     if st.session_state.activity_log:
-        st.markdown("### 📜 Recent Activity Log")
+        st.markdown("### 📘 Recent Activity Log")
         for entry in reversed(st.session_state.activity_log[-5:]):
-            st.markdown(f"**🗕️ {entry['date']}** — ⚡ Energy: {entry['energy']}/100")
+            st.markdown(f"**📅 {entry['date']}** — ⚡ Energy: {entry['energy']}/100")
 
 # --- LIFESTYLE TRACKER PAGE ---
 elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
-    st.title("📈 Lifestyle Tracker")
+    st.title("📊 Lifestyle Tracker")
     st.caption("View how your mood and energy evolve over time — powered by your own entries.")
 
     # --- Mood & Mind Section ---
-    st.subheader("🧠 Mood & Energy Log")
+    st.subheader("🧠 Mood & Energy Log (from Mood & Mind)")
     if st.session_state.mood_log:
         mood_df = pd.DataFrame(st.session_state.mood_log)
         mood_chart = alt.Chart(mood_df).mark_line(point=alt.OverlayMarkDef(filled=True, size=80), color="#8BC34A").encode(
@@ -233,12 +238,21 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
         st.info("No mood data logged yet. Check the 🧠 Mood & Mind tab!")
 
     # --- Fitness Boost Section ---
-    st.subheader("💪 Physical Activity Log")
+    st.subheader("💪 Physical Activity Log (from Fitness Boost)")
     if st.session_state.activity_log:
         activity_df = pd.DataFrame(st.session_state.activity_log)
-        activity_chart = alt.Chart(activity_df).mark_area(line={"color": "#2196F3"}, color=alt.Gradient(
-            gradient='linear', stops=[alt.GradientStop(color='#BBDEFB', offset=0), alt.GradientStop(color='#2196F3', offset=1)], x1=1, x2=1, y1=1, y2=0
-        )).encode(
+        activity_df["date"] = pd.to_datetime(activity_df["date"])
+        activity_chart = alt.Chart(activity_df).mark_area(
+            line={"color": "#2196F3"},
+            color=alt.Gradient(
+                gradient='linear',
+                stops=[
+                    alt.GradientStop(color='#BBDEFB', offset=0),
+                    alt.GradientStop(color='#2196F3', offset=1)
+                ],
+                x1=1, x2=1, y1=1, y2=0
+            )
+        ).encode(
             x=alt.X("date:T", title="Date"),
             y=alt.Y("energy:Q", title="Energy Level"),
             tooltip=["date", "energy"]
