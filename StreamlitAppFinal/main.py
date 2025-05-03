@@ -28,6 +28,7 @@ for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows"
 if st.session_state.selected_tab is None:
     st.session_state.selected_tab = "🏠 Home"
 
+
 # --- NAVIGATION ---
 tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
 selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
@@ -246,42 +247,42 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     else:
         st.info("No mood data logged yet. Check the 🧠 Mood & Mind tab!")
 
-   # --- Fitness Boost Section ---
-st.subheader("💪 Physical Activity Log (from Fitness Boost)")
+    # --- Fitness Boost Section ---
+    st.subheader("💪 Physical Activity Log (from Fitness Boost)")
 
-if st.session_state.activity_log:
-    # Clean and normalize log entries
-    cleaned_log = []
-    for entry in st.session_state.activity_log:
-        cleaned_log.append({
-            "date": entry.get("date", datetime.now().date()),
-            "energy": entry.get("energy", 0),
-            "activity": entry.get("activity", "Unknown"),
-            "duration": entry.get("duration", 0),
-            "calories": entry.get("calories", 0),
-            "time": entry.get("time", datetime.now())
-        })
-    
-    activity_df = pd.DataFrame(cleaned_log)
-    activity_df["date"] = pd.to_datetime(activity_df["date"])
+    if st.session_state.activity_log:
+        # Clean and normalize log entries
+        cleaned_log = []
+        for entry in st.session_state.activity_log:
+            cleaned_log.append({
+                "date": entry.get("date", datetime.now().date()),
+                "energy": entry.get("energy", 0),
+                "activity": entry.get("activity", "Unknown"),
+                "duration": entry.get("duration", 0),
+                "calories": entry.get("calories", 0),
+                "time": entry.get("time", datetime.now())
+            })
+        
+        activity_df = pd.DataFrame(cleaned_log)
+        activity_df["date"] = pd.to_datetime(activity_df["date"])
 
-    activity_chart = alt.Chart(activity_df).mark_area(
-        line={"color": "#2196F3"},
-        color=alt.Gradient(
-            gradient='linear',
-            stops=[
-                alt.GradientStop(color='#BBDEFB', offset=0),
-                alt.GradientStop(color='#2196F3', offset=1)
-            ],
-            x1=1, x2=1, y1=1, y2=0
-        )
-    ).encode(
-        x=alt.X("date:T", title="Date"),
-        y=alt.Y("energy:Q", title="Energy Level"),
-        tooltip=["date:T", "energy:Q", "activity:N", "duration:Q", "calories:Q"]
-    ).properties(height=250, title="Logged Physical Energy by Day")
+        activity_chart = alt.Chart(activity_df).mark_area(
+            line={"color": "#2196F3"},
+            color=alt.Gradient(
+                gradient='linear',
+                stops=[
+                    alt.GradientStop(color='#BBDEFB', offset=0),
+                    alt.GradientStop(color='#2196F3', offset=1)
+                ],
+                x1=1, x2=1, y1=1, y2=0
+            )
+        ).encode(
+            x=alt.X("date:T", title="Date"),
+            y=alt.Y("energy:Q", title="Energy Level"),
+            tooltip=["date:T", "energy:Q", "activity:N", "duration:Q", "calories:Q"]
+        ).properties(height=250, title="Logged Physical Energy by Day")
 
-    st.altair_chart(activity_chart, use_container_width=True)
+        st.altair_chart(activity_chart, use_container_width=True)
 
-else:
-    st.info("No fitness activity logged yet. Head over to 🚶 Fitness Boost!")
+    else:
+        st.info("No fitness activity logged yet. Head over to 🚶 Fitness Boost!")
