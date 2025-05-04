@@ -255,7 +255,7 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
         if len(mood_df) == 1:
             # Use a dot chart for single entry
             mood_chart = alt.Chart(mood_df).mark_circle(size=150, color="#8BC34A").encode(
-                x=alt.X("time:T", title="Date & Time"),
+                x=alt.X("time:T", title="Date & Time", axis=alt.Axis(format="%b %d %I:%M %p")),
                 y=alt.Y("energy:Q", title="Energy Level"),
                 tooltip=["mood", "energy", "time"]
             ).properties(height=300, title="Mood-Based Energy Over Time")
