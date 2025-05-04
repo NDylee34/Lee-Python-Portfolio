@@ -62,7 +62,7 @@ if st.session_state.selected_tab == "🏠 Home":
     col1, col2 = st.columns(2)
     with col1:
         if st.button("🥗 Nutrition"):
-            st.session_state.selected_tab = "🏋️ Nutrition"
+            st.session_state.selected_tab = "🍽️ Nutrition"
     with col2:
         if st.button("🧘 Mood & Mind"):
             st.session_state.selected_tab = "🧘 Mood & Mind"
