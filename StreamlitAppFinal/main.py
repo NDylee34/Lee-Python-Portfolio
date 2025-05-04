@@ -8,9 +8,11 @@ from PIL import Image
 import streamlit.components.v1 as components
 
 # --- PAGE CONFIG ---
+# Set up Streamlit page with title and wide layout
 st.set_page_config(page_title="🌿 ThriveHub: Your Personal Wellness Companion", layout="wide")
 
 # --- SECRETS ---
+# Load API credentials for Nutritionix
 NUTRITIONIX_APP_ID = st.secrets["NUTRITIONIX_APP_ID"]
 NUTRITIONIX_API_KEY = st.secrets["NUTRITIONIX_API_KEY"]
 API_URL = "https://trackapi.nutritionix.com/v2/natural/nutrients"
@@ -21,6 +23,7 @@ HEADERS = {
 }
 
 # --- SESSION STATE DEFAULTS ---
+# Initialize all session variables to store user input and logs
 for key in ["gender", "weight", "height", "age", "goal", "activity", "data_rows", "mood_log", "activity_log", "selected_tab"]:
     if key not in st.session_state:
         st.session_state[key] = None if key not in ["data_rows", "mood_log", "activity_log"] else []
@@ -30,11 +33,13 @@ if st.session_state.selected_tab is None:
 
 
 # --- NAVIGATION ---
+# Sidebar tab selection
 tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
 selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
 st.session_state.selected_tab = selection
 
 # --- PROFILE SIDEBAR ---
+# Persistent profile inputs in sidebar for all tabs
 with st.sidebar:
     st.subheader("👤 Your Profile")
     st.session_state.gender = st.selectbox("Gender", ["Male", "Female"], index=0 if not st.session_state.gender else ["Male", "Female"].index(st.session_state.gender))
@@ -70,14 +75,17 @@ if st.session_state.selected_tab == "🏠 Home":
             st.session_state.selected_tab = "📈 Lifestyle Tracker"
 
 # --- FUNCTIONS ---
+# Calculate BMR (Basal Metabolic Rate) using Mifflin-St Jeor equation
 def calculate_bmr(gender, weight, height, age):
     return 10 * weight + 6.25 * height - 5 * age + (5 if gender == "Male" else -161)
 
+# Estimate daily calorie needs based on goal and activity level
 def estimate_calories(goal, bmr, activity):
     factor = {"Sedentary": 1.2, "Moderate": 1.55, "Active": 1.725}[activity]
     adjustment = {"Weight Loss": -500, "Maintenance": 0, "Muscle Gain": 300}[goal]
     return bmr * factor + adjustment
 
+# Make API call to Nutritionix to get nutrition info for a food item
 def get_nutrition_data(food):
     response = requests.post(API_URL, headers=HEADERS, json={"query": food})
     if response.status_code == 200:
@@ -97,13 +105,16 @@ def get_nutrition_data(food):
 # --- NUTRITION PAGE ---
 if st.session_state.selected_tab == "🏋️ Nutrition":
     st.title("🍎 Nutrition Tracker")
-
+    
+    # Calculate user's BMR and estimate their daily calorie needs
     bmr = calculate_bmr(st.session_state.gender, st.session_state.weight, st.session_state.height, st.session_state.age)
     calorie_goal = estimate_calories(st.session_state.goal, bmr, st.session_state.activity)
     st.sidebar.metric("🎯 Daily Calorie Goal", f"{int(calorie_goal)} kcal")
 
+    # User selects how to enter food data: Upload or Manual
     input_method = st.radio("Choose Input Method:", ["Upload CSV", "Manual Entry"])
 
+    # --- CSV Upload Option ---
     if input_method == "Upload CSV":
         uploaded_file = st.file_uploader("Upload CSV with a 'Food' column", type="csv")
         if uploaded_file:
@@ -116,6 +127,7 @@ if st.session_state.selected_tab == "🏋️ Nutrition":
             else:
                 st.error("CSV must contain 'Food' column")
 
+    # --- Manual Entry Option ---
     if input_method == "Manual Entry":
         food_items = st.text_area("Enter food items (one per line):")
         if st.button("Analyze Nutrition"):
@@ -126,12 +138,14 @@ if st.session_state.selected_tab == "🏋️ Nutrition":
                     if nutri_data:
                         st.session_state.data_rows.append(nutri_data)
 
+    # --- Display Nutritional Analysis ---
     if st.session_state.data_rows:
         result_df = pd.DataFrame(st.session_state.data_rows)
         st.dataframe(result_df)
         totals = result_df[["Calories", "Protein (g)", "Carbs (g)", "Fat (g)", "Sodium (mg)"]].sum()
         st.metric("Total Calories", f"{totals['Calories']:.0f} kcal")
 
+        # Create a donut chart showing macronutrient breakdown
         donut_data = pd.DataFrame({
             'Nutrient': ['Protein', 'Carbs', 'Fat'],
             'Grams': [totals["Protein (g)"], totals["Carbs (g)"], totals["Fat (g)"]]
@@ -149,9 +163,11 @@ if st.session_state.selected_tab == "🏋️ Nutrition":
 elif st.session_state.selected_tab == "🧘 Mood & Mind":
     st.title("🧠 Mood & Mind")
 
+    # User selects mood and energy level
     mood = st.selectbox("How are you feeling?", ["Happy", "Stressed", "Tired", "Energetic", "Anxious", "Motivated"])
     energy = st.slider("Your energy level:", 0, 100, 50)
 
+    # Log energy and mood when button is clicked
     if st.button("➕ Log Energy Level"):
         st.session_state.mood_log.append({"time": datetime.now(), "mood": mood, "energy": energy})
         st.success("Energy level added to your mood log!")
@@ -184,8 +200,10 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
     st.title("💪 Fitness Boost")
     st.caption("Get personalized movement suggestions and calorie estimates based on your energy level and activity.")
 
+    # Ask for current energy level
     energy = st.slider("⚡ How much energy do you have right now?", 0, 100, 50)
 
+    # Suggest workout based on energy
     if energy > 70:
         st.markdown("🏃 High Energy: Try a 30-min HIIT session or an outdoor run.")
     elif energy > 40:
@@ -193,10 +211,12 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
     else:
         st.markdown("🚶 Low Energy: Go for a short walk or light stretching.")
 
+    # --- Activity Type & Calorie Burn Calculator ---
     st.markdown("### 🏃 Choose an Activity")
     activity_type = st.selectbox("Select an activity:", [
     "Cycling", "Running", "Stairmaster", "Weightlifting", "Swimming", "Hiking", "Outdoor Soccer", "Basketball", "Tennis"])
 
+    # MET values per kg per minute for each activity
     calories_per_kg_per_min = {
         "Cycling": 0.14,
         "Running": 0.17,
@@ -209,13 +229,16 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         "Tennis": 0.11
     }
 
+    # Input desired calories to burn
     calories_to_burn = st.number_input("Enter how many calories you want to burn:", min_value=50, value=200)
 
+    # Calculate time required based on selected activity and weight
     if st.session_state.weight:
         burn_rate = calories_per_kg_per_min[activity_type] * st.session_state.weight
         required_minutes = calories_to_burn / burn_rate
         st.info(f"You need approximately **{required_minutes:.1f} minutes** of {activity_type.lower()} to burn {calories_to_burn} kcal.")
 
+    # --- Log activity when button clicked ---
     if st.button("📌 Log Today’s Activity"):
         if st.session_state.weight:
             burn_rate = calories_per_kg_per_min[activity_type] * st.session_state.weight
@@ -234,7 +257,7 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         else:
             st.warning("Please enter your weight in the sidebar to calculate activity metrics.")
 
-
+    # --- Display recent activity log ---
     if st.session_state.activity_log:
         st.markdown("### 📘 Recent Activity Log")
         for entry in reversed(st.session_state.activity_log[-5:]):
@@ -294,6 +317,7 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
         activity_df["time"] = pd.to_datetime(activity_df["time"])
         activity_df = activity_df[["date", "energy", "activity", "duration", "calories"]].sort_values(by="date", ascending=False)
 
+        # Display table with formatted headers
         st.dataframe(activity_df.rename(columns={
             "date": "📅 Date",
             "energy": "⚡ Energy Level",
