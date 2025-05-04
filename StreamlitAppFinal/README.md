@@ -62,7 +62,7 @@ Set your age, height, weight, gender, wellness goal, and activity level. These a
 * View calorie and macro breakdown
 * Visualize intake with an interactive donut chart
 
-<img src="images/nutrition_summary.jpg" alt="Nutrition Tracker" width="1000"/>
+<img src="images/nutrition_summary.jpeg" alt="Nutrition Tracker" width="1000"/>
 
 
 ### 🧠 Mood & Mind
