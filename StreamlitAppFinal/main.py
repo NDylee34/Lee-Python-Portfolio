@@ -194,14 +194,21 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
         st.markdown("🚶 Low Energy: Go for a short walk or light stretching.")
 
     st.markdown("### 🏃 Choose an Activity")
-    activity_type = st.selectbox("Select an activity:", ["Cycling", "30-minute Run", "Weightlifting", "Swimming", "Hiking"])
+    activity_type = st.selectbox("Select an activity:", [
+    "Cycling", "Running", "Stairmaster", "Weightlifting", "Swimming", "Hiking", "Outdoor Soccer", "Basketball", "Tennis"])
+
     calories_per_kg_per_min = {
         "Cycling": 0.14,
-        "30-minute Run": 0.17,
+        "Running": 0.17,
+        "Stairmaster": 0.14,
         "Weightlifting": 0.09,
         "Swimming": 0.13,
-        "Hiking": 0.12
+        "Hiking": 0.12,
+        "Outdoor Soccer": 0.15,
+        "Basketball": 0.12,
+        "Tennis": 0.11
     }
+
     calories_to_burn = st.number_input("Enter how many calories you want to burn:", min_value=50, value=200)
 
     if st.session_state.weight:
