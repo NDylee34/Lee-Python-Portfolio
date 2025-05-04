@@ -247,10 +247,14 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
 
     # --- Mood & Mind Section ---
     st.subheader("🧠 Mood & Energy Log")
-
+    
     if st.session_state.mood_log:
         mood_df = pd.DataFrame(st.session_state.mood_log)
         mood_df["time"] = pd.to_datetime(mood_df["time"])
+
+        from pytz import timezone
+        eastern = timezone("US/Eastern")
+        mood_df["time_est"] = mood_df["time"].dt.tz_localize("UTC").dt.tz_convert(eastern)
 
         if len(mood_df) == 1:
             # Use a dot chart for single entry
