@@ -2,6 +2,16 @@
 
 This portfolio is a compilation of all the **Elements of Computing II projects** I have worked on this semester. It is regularly updated to showcase **data analysis, visualization, and interactive applications** using Python.
 
+## 👀 At a Glance
+
+| Project                                          | Description                                                            | Link                                                                                      |
+| ------------------------------------------------ | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 🐧 **Penguins Streamlit App**                    | Basic Streamlit app exploring penguin data across islands.             | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/basic-streamlit-app) |
+| 🥇 **Tidy Data Project**                         | Cleaned and visualized 2008 Olympic data using tidy data principles.   | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/TidyData-Project)    |
+| 🧠 **Custom Named Entity Recognition (NER) App** | Interactive NLP tool using spaCy to extract custom entities from text. | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/NERStreamlitApp)     |
+| 🌿 **ThriveHub Wellness App**                    | Personal wellness dashboard for tracking nutrition, mood, and fitness. | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/StreamlitAppFinal)   |
+
+
 ## 📌 Projects
 
 ### **Streamlit App**
