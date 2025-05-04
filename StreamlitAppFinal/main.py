@@ -252,10 +252,6 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
         mood_df = pd.DataFrame(st.session_state.mood_log)
         mood_df["time"] = pd.to_datetime(mood_df["time"])
 
-        from pytz import timezone
-        eastern = timezone("US/Eastern")
-        mood_df["time_est"] = mood_df["time"].dt.tz_localize("UTC").dt.tz_convert(eastern)
-
         if len(mood_df) == 1:
             # Use a dot chart for single entry
             mood_chart = alt.Chart(mood_df).mark_circle(size=150, color="#8BC34A").encode(
@@ -263,6 +259,9 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
                 y=alt.Y("energy:Q", title="Energy Level"),
                 tooltip=["mood", "energy", "time"]
             ).properties(height=300, title="Mood-Based Energy Over Time")
+            from pytz import timezone
+            eastern = timezone("US/Eastern")
+            mood_chart["time_est"] = mood_chart["time"].dt.tz_localize("UTC").dt.tz_convert(eastern)
         else:
             # Use area chart for multiple entries
             mood_chart = alt.Chart(mood_df).mark_area(
