@@ -62,7 +62,7 @@ Set your age, height, weight, gender, wellness goal, and activity level. These a
 * View calorie and macro breakdown
 * Visualize intake with an interactive donut chart
 
-<img src="images/nutrition_summary.jpg" alt="Nutrition Tracker" width="700"/>
+<img src="images/nutrition_summary.jpg" alt="Nutrition Tracker" width="1000"/>
 
 
 ### 🧠 Mood & Mind
@@ -72,7 +72,7 @@ Set your age, height, weight, gender, wellness goal, and activity level. These a
 * Receive motivational quotes for your mental boost
 * Visualize energy trends over time
 
-<img src="images/mood_tab.jpg" alt="Mood & Energy Chart" width="700"/>
+<img src="images/mood_tab.jpg" alt="Mood & Energy Chart" width="1000"/>
 
 
 ### 💪 Fitness Boost
@@ -82,7 +82,7 @@ Set your age, height, weight, gender, wellness goal, and activity level. These a
 * Log activity entries with energy, time, and calories
 * View your recent activity history
 
-<img src="images/fitness_tab.jpg" alt="Fitness Log" width="700"/>
+<img src="images/fitness_tab.jpg" alt="Fitness Log" width="1000"/>
 
 
 ### 📈 Lifestyle Tracker
@@ -91,7 +91,7 @@ Set your age, height, weight, gender, wellness goal, and activity level. These a
 * Interactive Altair charts
 * Summary table of workouts with energy, duration, and calories burned
 
-<img src="images/lifestyle_tracker.jpg" alt="Lifestyle Overview" width="700"/>
+<img src="images/lifestyle_tracker.jpg" alt="Lifestyle Overview" width="1000"/>
 
 ---
 
