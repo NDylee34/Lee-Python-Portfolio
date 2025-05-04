@@ -259,7 +259,7 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     st.subheader("💪 Physical Activity Log (from Fitness Boost)")
     if st.session_state.activity_log:
         activity_df = pd.DataFrame(st.session_state.activity_log)
-        activity_df["date"] = pd.to_datetime(activity_df["date"])
+        activity_df["time"] = pd.to_datetime(activity_df["time"])
         activity_df = activity_df[["date", "energy", "activity", "duration", "calories"]].sort_values(by="date", ascending=False)
 
         st.dataframe(activity_df.rename(columns={
