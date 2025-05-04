@@ -34,7 +34,7 @@ if st.session_state.selected_tab is None:
 
 # --- NAVIGATION ---
 # Sidebar tab selection
-tabs = ["🏠 Home", "🏋️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
+tabs = ["🏠 Home", "🍽️ Nutrition", "🧘 Mood & Mind", "🚶 Fitness Boost", "📈 Lifestyle Tracker"]
 selection = st.sidebar.radio("Navigate ThriveHub:", tabs, index=tabs.index(st.session_state.selected_tab))
 st.session_state.selected_tab = selection
 
@@ -103,7 +103,7 @@ def get_nutrition_data(food):
         return None
 
 # --- NUTRITION PAGE ---
-if st.session_state.selected_tab == "🏋️ Nutrition":
+if st.session_state.selected_tab == "🍽️ Nutrition":
     st.title("🍎 Nutrition Tracker")
     
     # Calculate user's BMR and estimate their daily calorie needs

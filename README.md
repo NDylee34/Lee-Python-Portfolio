@@ -56,3 +56,30 @@ This project showcases my ability to combine **natural language processing**, **
 - ☁️ **Deployment to Streamlit Cloud** for accessibility and product-readiness
 
 In the context of my broader portfolio, this app reflects my skill in building tools that are **functionally reliable** and **accessible to non-technical users**. It adds a new layer to my work in data analysis by incorporating **text processing, pattern recognition, and frontend user experience**, demonstrating my technical ability across the data pipeline.
+
+Here's the new section for your portfolio `README.md`, fully aligned with the tone, formatting, and emoji usage of your previous projects:
+
+### **ThriveHub Wellness Streamlit App**
+
+🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/StreamlitAppFinal)
+🚀 [Launch Live App](https://lee-nutritionist.streamlit.app/)
+
+**Description:**
+The **ThriveHub** app is an **interactive lifestyle tracker**, designed to promote wellness through **nutrition logging**, **mood journaling**, **fitness planning**, and **lifestyle tracking**. The app combines user input, personalized health metrics, and visual feedback to create a holistic dashboard for day-to-day wellbeing.
+
+✔ **Unified Profile System** – A persistent sidebar lets users personalize recommendations across all modules
+
+✔ **Nutrition Analysis** – Enter meals via CSV or manually to receive macro breakdowns and visual insights
+✔ **Mood & Energy Logging** – Track your emotional state and energy over time with tailored Spotify playlists and daily quotes
+✔ **Fitness Recommendations** – Get movement suggestions and calorie burn estimates based on your profile and energy level
+✔ **Lifestyle Tracker** – Visualize long-term patterns in physical and emotional health through interactive charts and activity tables
+
+**How It Complements My Portfolio:**
+This project reflects my ability to develop **end-to-end interactive applications** with real-world value. ThriveHub brings together my personal interest in **wellness** and my technical abilities of developing **user experience design**, resulting in a product that is both user-friendly and technically complex. It highlights my strengths in:
+
+- 📈 **Modular app architecture** using Streamlit session state
+- 🧠 **Data visualization** using Altair and dynamic UI components
+- 🔗 **Enahancement of usability** through shared logic
+- ☁️ **Deployment to Streamlit Cloud** for real world use 
+
+In the broader context of my portfolio, ThriveHub is a project that leverages my technical capabilities to promote my personal interest and passino. It illustrates my growth in building apps that are **functionally impactful, user-friendly, and aligned with personal domains of interest.**
