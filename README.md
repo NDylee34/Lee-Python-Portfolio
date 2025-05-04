@@ -6,10 +6,10 @@ This portfolio is a compilation of all the **Elements of Computing II projects**
 
 | Project                                          | Description                                                            | Link                                                                                      |
 | ------------------------------------------------ | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 🐧 **Penguins Streamlit App**                    | Basic Streamlit app exploring penguin data across islands.             | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/basic-streamlit-app) |
-| 🥇 **Tidy Data Project**                         | Cleaned and visualized 2008 Olympic data using tidy data principles.   | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/TidyData-Project)    |
-| 🧠 **Custom Named Entity Recognition (NER) App** | Interactive NLP tool using spaCy to extract custom entities from text. | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/NERStreamlitApp)     |
-| 🌿 **ThriveHub Wellness App**                    | Personal wellness dashboard for tracking nutrition, mood, and fitness. | [🔗 View](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/StreamlitAppFinal)   |
+| 🐧 **Penguins Streamlit App**                    | Basic Streamlit app exploring penguin data across islands.             | [🔗](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/basic-streamlit-app) |
+| 🥇 **Tidy Data Project**                         | Cleaned and visualized 2008 Olympic data using tidy data principles.   | [🔗](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/TidyData-Project)    |
+| 🧠 **Custom Named Entity Recognition (NER) App** | Interactive NLP tool using spaCy to extract custom entities from text. | [🔗](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/NERStreamlitApp)     |
+| 🌿 **ThriveHub Wellness App**                    | Personal wellness dashboard for tracking nutrition, mood, and fitness. | [🔗](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/StreamlitAppFinal)   |
 
 
 ## 📌 Projects
