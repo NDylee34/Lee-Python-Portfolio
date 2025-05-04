@@ -200,7 +200,7 @@ elif st.session_state.selected_tab == "🚶 Fitness Boost":
     calories_per_kg_per_min = {
         "Cycling": 0.14,
         "Running": 0.17,
-        "Stairmaster": 0.14,
+        "Stairmaster": 0.20,
         "Weightlifting": 0.09,
         "Swimming": 0.13,
         "Hiking": 0.12,
