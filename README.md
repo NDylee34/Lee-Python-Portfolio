@@ -76,11 +76,11 @@ Here's the new section for your portfolio `README.md`, fully aligned with the to
 **Description:**
 The **ThriveHub** app is an **interactive lifestyle tracker**, designed to promote wellness through **nutrition logging**, **mood journaling**, **fitness planning**, and **lifestyle tracking**. The app combines user input, personalized health metrics, and visual feedback to create a holistic dashboard for day-to-day wellbeing.
 
-✔ **Unified Profile System** – A persistent sidebar lets users personalize recommendations across all modules
-✔ **Nutrition Analysis** – Enter meals via CSV or manually to receive macro breakdowns and visual insights
-✔ **Mood & Energy Logging** – Track your emotional state and energy over time with tailored Spotify playlists and daily quotes
-✔ **Fitness Recommendations** – Get movement suggestions and calorie burn estimates based on your profile and energy level
-✔ **Lifestyle Tracker** – Visualize long-term patterns in physical and emotional health through interactive charts and activity tables
+✔ **Unified Profile System** – A persistent sidebar lets users personalize recommendations across all modules  
+✔ **Nutrition Analysis** – Enter meals via CSV or manually to receive macro breakdowns and visual insights  
+✔ **Mood & Energy Logging** – Track your emotional state and energy over time with tailored Spotify playlists and daily quotes  
+✔ **Fitness Recommendations** – Get movement suggestions and calorie burn estimates based on your profile and energy level  
+✔ **Lifestyle Tracker** – Visualize long-term patterns in physical and emotional health through interactive charts and activity tables  
 
 **How It Complements My Portfolio:**
 This project reflects my ability to develop **end-to-end interactive applications** with real-world value. ThriveHub brings together my personal interest in **wellness** and my technical abilities of developing **user experience design**, resulting in a product that is both user-friendly and technically complex. It highlights my strengths in:
