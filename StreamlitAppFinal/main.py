@@ -246,22 +246,25 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     st.caption("View how your mood and energy evolve over time — powered by your own entries.")
 
     # --- Mood & Mind Section ---
+    from pytz import timezone
+
     st.subheader("🧠 Mood & Energy Log")
-    
+
     if st.session_state.mood_log:
         mood_df = pd.DataFrame(st.session_state.mood_log)
         mood_df["time"] = pd.to_datetime(mood_df["time"])
 
+        # Convert to Eastern Time
+        eastern = timezone("US/Eastern")
+        mood_df["time_est"] = mood_df["time"].dt.tz_localize("UTC").dt.tz_convert(eastern)
+
         if len(mood_df) == 1:
             # Use a dot chart for single entry
             mood_chart = alt.Chart(mood_df).mark_circle(size=150, color="#8BC34A").encode(
-                x=alt.X("time:T", title="Date & Time", axis=alt.Axis(format="%b %d %I:%M %p")),
+                x=alt.X("time_est:T", title="Date & Time (EST)", axis=alt.Axis(format="%b %d %I:%M %p")),
                 y=alt.Y("energy:Q", title="Energy Level"),
-                tooltip=["mood", "energy", "time"]
+                tooltip=["mood", "energy", "time_est"]
             ).properties(height=300, title="Mood-Based Energy Over Time")
-            from pytz import timezone
-            eastern = timezone("US/Eastern")
-            mood_chart["time_est"] = mood_chart["time"].dt.tz_localize("UTC").dt.tz_convert(eastern)
         else:
             # Use area chart for multiple entries
             mood_chart = alt.Chart(mood_df).mark_area(
@@ -275,9 +278,9 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
                     x1=1, x2=1, y1=1, y2=0
                 )
             ).encode(
-                x=alt.X("time:T", title="Date & Time"),
+                x=alt.X("time_est:T", title="Date & Time (EST)", axis=alt.Axis(format="%b %d %I:%M %p")),
                 y=alt.Y("energy:Q", title="Energy Level"),
-                tooltip=["mood", "energy", "time"]
+                tooltip=["mood", "energy", "time_est"]
             ).properties(height=300, title="Mood-Based Energy Over Time")
 
         st.altair_chart(mood_chart, use_container_width=True)
