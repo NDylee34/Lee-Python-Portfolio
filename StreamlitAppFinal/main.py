@@ -255,19 +255,19 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     else:
         st.info("No mood data logged yet. Check the 🧠 Mood & Mind tab!")
 
-# --- Fitness Boost Section ---
-st.subheader("💪 Physical Activity Log (from Fitness Boost)")
-if st.session_state.activity_log:
-    activity_df = pd.DataFrame(st.session_state.activity_log)
-    activity_df["date"] = pd.to_datetime(activity_df["date"])
-    activity_df = activity_df[["date", "energy", "activity", "duration", "calories"]].sort_values(by="date", ascending=False)
+    # --- Fitness Boost Section ---
+    st.subheader("💪 Physical Activity Log (from Fitness Boost)")
+    if st.session_state.activity_log:
+        activity_df = pd.DataFrame(st.session_state.activity_log)
+        activity_df["date"] = pd.to_datetime(activity_df["date"])
+        activity_df = activity_df[["date", "energy", "activity", "duration", "calories"]].sort_values(by="date", ascending=False)
 
-    st.dataframe(activity_df.rename(columns={
-        "date": "📅 Date",
-        "energy": "⚡ Energy Level",
-        "activity": "🏃 Activity",
-        "duration": "⏱️ Duration (min)",
-        "calories": "🔥 Calories Burned"
-    }), use_container_width=True)
-else:
-    st.info("No fitness activity logged yet. Head over to 🚶 Fitness Boost!")
+        st.dataframe(activity_df.rename(columns={
+            "date": "📅 Date",
+            "energy": "⚡ Energy Level",
+            "activity": "🏃 Activity",
+            "duration": "⏱️ Duration (min)",
+            "calories": "🔥 Calories Burned"
+        }), use_container_width=True)
+    else:
+        st.info("No fitness activity logged yet. Head over to 🚶 Fitness Boost!")
