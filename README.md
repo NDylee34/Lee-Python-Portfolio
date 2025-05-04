@@ -30,7 +30,7 @@ The **Streamlit App** is an **interactive web application** that allows users to
 ✅ Implement **dynamic filtering** for multiple columns.  
 ✅ Improve the UI with **Streamlit styling options**.
 
-----
+
 ### **Tidy Data Project**
 🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/TidyData-Project)
 
@@ -46,7 +46,7 @@ This project **showcases my ability to efficiently process and analyze unstructu
 
 You're right! Here's the same emoji-enhanced section delivered in plain text for **easy copy-paste** into your `.Rmd` or `README.md` file — no formatting issues:
 
-----
+
 ### **Named Entity Recognition (NER) Streamlit App**  
 🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/NERStreamlitApp)  
 🚀 [Launch Live App](https://lee-ner.streamlit.app/)
@@ -71,7 +71,7 @@ In the context of my broader portfolio, this app reflects my skill in building t
 
 Here's the new section for your portfolio `README.md`, fully aligned with the tone, formatting, and emoji usage of your previous projects:
 
-----
+
 ### **ThriveHub Wellness Streamlit App**
 🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/StreamlitAppFinal)  
 🚀 [Launch Live App](https://lee-nutritionist.streamlit.app/)
