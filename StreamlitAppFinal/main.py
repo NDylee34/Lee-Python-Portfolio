@@ -246,24 +246,43 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
     st.caption("View how your mood and energy evolve over time — powered by your own entries.")
 
     # --- Mood & Mind Section ---
-    st.subheader("🧠 Mood & Energy Log (from Mood & Mind)")
+    st.subheader("🧠 Mood & Energy Log")
+
     if st.session_state.mood_log:
         mood_df = pd.DataFrame(st.session_state.mood_log)
-        mood_chart = alt.Chart(mood_df).mark_area(line={"color": "#8BC34A"}, color=alt.Gradient(
-            gradient='linear',
-            stops=[alt.GradientStop(color='#C8E6C9', offset=0), alt.GradientStop(color='#4CAF50', offset=1)],
-            x1=1, x2=1, y1=1, y2=0
-        )).encode(
-            x=alt.X("time:T", title="Date & Time"),
-            y=alt.Y("energy:Q", title="Energy Level"),
-            tooltip=["mood", "energy", "time"]
-        ).properties(height=300, title="Mood-Based Energy Over Time")
+        mood_df["time"] = pd.to_datetime(mood_df["time"])
+
+        if len(mood_df) == 1:
+            # Use a dot chart for single entry
+            mood_chart = alt.Chart(mood_df).mark_circle(size=150, color="#8BC34A").encode(
+                x=alt.X("time:T", title="Date & Time"),
+                y=alt.Y("energy:Q", title="Energy Level"),
+                tooltip=["mood", "energy", "time"]
+            ).properties(height=300, title="Mood-Based Energy Over Time")
+        else:
+            # Use area chart for multiple entries
+            mood_chart = alt.Chart(mood_df).mark_area(
+                line={"color": "#8BC34A"},
+                color=alt.Gradient(
+                    gradient='linear',
+                    stops=[
+                        alt.GradientStop(color='#C8E6C9', offset=0),
+                        alt.GradientStop(color='#4CAF50', offset=1)
+                    ],
+                    x1=1, x2=1, y1=1, y2=0
+                )
+            ).encode(
+                x=alt.X("time:T", title="Date & Time"),
+                y=alt.Y("energy:Q", title="Energy Level"),
+                tooltip=["mood", "energy", "time"]
+            ).properties(height=300, title="Mood-Based Energy Over Time")
+
         st.altair_chart(mood_chart, use_container_width=True)
     else:
         st.info("No mood data logged yet. Check the 🧠 Mood & Mind tab!")
 
     # --- Fitness Boost Section ---
-    st.subheader("💪 Physical Activity Log (from Fitness Boost)")
+    st.subheader("💪 Physical Activity Log")
     if st.session_state.activity_log:
         activity_df = pd.DataFrame(st.session_state.activity_log)
         activity_df["time"] = pd.to_datetime(activity_df["time"])
@@ -277,4 +296,4 @@ elif st.session_state.selected_tab == "📈 Lifestyle Tracker":
             "calories": "🔥 Calories Burned"
         }), use_container_width=True)
     else:
-        st.info("No fitness activity logged yet. Head over to 🚶 Fitness Boost!")
+        st.info("No fitness activity logged yet. Head over to 🚶 Fitness Boost tab!")
