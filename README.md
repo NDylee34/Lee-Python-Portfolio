@@ -3,7 +3,7 @@
 This portfolio is a compilation of all the **Elements of Computing II projects** I have worked on this semester. It is regularly updated to showcase **data analysis, visualization, and interactive applications** using Python.
 
 ## 👀 At a Glance
-
+---
 | Project                                          | Description                                                            | Link                                                                                      |
 | ------------------------------------------------ | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | 🐧 **Penguins Streamlit App**                    | Basic Streamlit app exploring penguin data across islands.             | [🔗](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/basic-streamlit-app) |
@@ -13,7 +13,7 @@ This portfolio is a compilation of all the **Elements of Computing II projects**
 
 
 ## 📌 Projects
-
+---
 ### **Streamlit App**
 🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/basic-streamlit-app)
 
@@ -29,7 +29,7 @@ The **Streamlit App** is an **interactive web application** that allows users to
 ✅ Enhance user experience by **adding data visualizations** (e.g., distribution of species).  
 ✅ Implement **dynamic filtering** for multiple columns.  
 ✅ Improve the UI with **Streamlit styling options**.
-
+---
 ### **Tidy Data Project**
 🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/TidyData-Project)
 
@@ -44,7 +44,7 @@ The **Tidy Data Project** applies **tidy data principles** to transform and anal
 This project **showcases my ability to efficiently process and analyze unstructured data**, transforming it into a structured format that facilitates deeper insights. By applying tidy data principles, I ensure that the data is **clean, well-organized, and optimized** for analysis. Additionally, I **leverage data visualization techniques** to create compelling and meaningful representations that effectively highlight **trends, patterns, and relationships** within large datasets. Through this approach, I demonstrate my proficiency in making data-driven insights accessible and impactful.
 
 You're right! Here's the same emoji-enhanced section delivered in plain text for **easy copy-paste** into your `.Rmd` or `README.md` file — no formatting issues:
-
+---
 ### **Named Entity Recognition (NER) Streamlit App**  
 🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/NERStreamlitApp)  
 🚀 [Launch Live App](https://lee-ner.streamlit.app/)
@@ -68,7 +68,7 @@ This project showcases my ability to combine **natural language processing**, **
 In the context of my broader portfolio, this app reflects my skill in building tools that are **functionally reliable** and **accessible to non-technical users**. It adds a new layer to my work in data analysis by incorporating **text processing, pattern recognition, and frontend user experience**, demonstrating my technical ability across the data pipeline.
 
 Here's the new section for your portfolio `README.md`, fully aligned with the tone, formatting, and emoji usage of your previous projects:
-
+---
 ### **ThriveHub Wellness Streamlit App**
 🔗 [View Project Repository](https://github.com/NDylee34/Lee-Python-Portfolio/tree/main/StreamlitAppFinal)  
 🚀 [Launch Live App](https://lee-nutritionist.streamlit.app/)
